@@ -698,7 +698,7 @@
                 const code = session.access_token;
 
                 // Build redirect URL
-                const redirectUrl = new URL(oauthParams.redirect_uri);
+                const redirectUrl = new URL("https://a01K74WVDMZ37WHP8VK0CE08WQ7.callbacks.bravostudio.app/oauth-token");
                 redirectUrl.searchParams.set('code', code);
 
                 if (oauthParams.state) {
@@ -718,7 +718,7 @@
             if (!oauthParams) return;
 
             // Build error redirect URL
-            const redirectUrl = new URL(oauthParams.redirect_uri);
+            const redirectUrl = new URL("https://a01K74WVDMZ37WHP8VK0CE08WQ7.callbacks.bravostudio.app/oauth-token");
             redirectUrl.searchParams.set('error', 'access_denied');
             redirectUrl.searchParams.set('error_description', 'User denied the request');
 
