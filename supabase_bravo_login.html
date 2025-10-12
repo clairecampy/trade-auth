@@ -699,7 +699,7 @@
 
                 // Build redirect URL
                 const redirectUrl = new URL("https://a01K74WVDMZ37WHP8VK0CE08WQ7.callbacks.bravostudio.app/oauth-token");
-                redirectUrl.searchParams.set('code', code);
+                redirectUrl.searchParams.set('code', tokenRequest.code);
 
                 if (oauthParams.state) {
                     redirectUrl.searchParams.set('state', oauthParams.state);
