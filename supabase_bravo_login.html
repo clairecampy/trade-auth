@@ -460,7 +460,8 @@
 
     <script>
         // ⚠️ REPLACE WITH YOUR SUPABASE CREDENTIALS
-        const SUPABASE_URL = 'https://hukkjktxwcceajwvnybm.supabase.co';
+        const SUPABASE_URL = 'https://hukkjktxwcceajwvnybm.supabase.co
+';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1a2tqa3R4d2NjZWFqd3ZueWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMDE1MjYsImV4cCI6MjA3NTU3NzUyNn0.koOSDJ8m3CfvF8CwN84w-AsZsmUiPJddzsnMOR0XvJE';
 
         // Initialize Supabase client
@@ -698,7 +699,7 @@
                 const code = session.access_token;
 
                 // Build redirect URL
-                const redirectUrl = new URL("https://a01K74WVDMZ37WHP8VK0CE08WQ7.callbacks.bravostudio.app");
+                const redirectUrl = new URL(oauthParams.redirect_uri);
                 redirectUrl.searchParams.set('code', code);
 
                 if (oauthParams.state) {
@@ -718,7 +719,7 @@
             if (!oauthParams) return;
 
             // Build error redirect URL
-            const redirectUrl = new URL("https://a01K74WVDMZ37WHP8VK0CE08WQ7.callbacks.bravostudio.app");
+            const redirectUrl = new URL(oauthParams.redirect_uri);
             redirectUrl.searchParams.set('error', 'access_denied');
             redirectUrl.searchParams.set('error_description', 'User denied the request');
 
