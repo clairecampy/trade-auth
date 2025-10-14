@@ -620,8 +620,49 @@
                 submitBtn.textContent = 'Sign Up';
             }
         });
+        
+<!-- GitHub Login Button -->
+<div id="login-options">
+  <button id="github-login" onclick="signInWithGitHub()" style="
+    background-color: #001F3F;       /* Navy */
+    color: white;                    /* White text */
+    border: none;
+    padding: 12px 24px;
+    font-size: 16px;
+    font-weight: bold;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  ">
+    🐙 Sign in with GitHub
+  </button>
+</div>
 
-        // Sign in with Google
+<!-- Scoped Hover Styling -->
+<style>
+  #github-login:hover {
+    background-color: #FF851B;       /* Orange hover */
+  }
+
+<!-- GitHub Login Script -->
+<script>
+  async function signInWithGitHub() {
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo: window.location.origin + window.location.pathname + window.location.search
+        }
+      });
+      if (error) throw error;
+      console.log('GitHub login initiated:', data);
+    } catch (err) {
+      console.error('GitHub login error:', err.message);
+    }
+  }
+
+
+        /*// Sign in with Google
         async function signInWithGoogle() {
             try {
                 const { data, error } = await supabase.auth.signInWithOAuth({
@@ -636,7 +677,7 @@
             } catch (error) {
                 showMessage(error.message, 'error');
             }
-        }
+        }*/
 
         // Show authorization section for OAuth2 flow
         function showAuthorizationSection() {
