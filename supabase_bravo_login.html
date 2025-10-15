@@ -412,7 +412,9 @@
                 <span>or continue with</span>
             </div>
 
-            <button class="social-btn" onclick="signInWithGoogle()">
+        
+                <button class="social-btn" onclick="signInWithGitHub()">Sign in with GitHub</button>
+
                 <svg width="20" height="20" viewBox="0 0 24 24">
                     <path fill="#4285f4"
                         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
@@ -625,7 +627,7 @@
 
 
 
-        // Sign in with Google
+        /*// Sign in with Google
         async function signInWithGoogle() {
             try {
                 const { data, error } = await supabase.auth.signInWithOAuth({
@@ -641,6 +643,25 @@
                 showMessage(error.message, 'error');
             }
         }
+        /*/
+
+     // Sign in with GitHub
+async function signInWithGitHub() {
+  try {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'github',
+      options: {
+        redirectTo: window.location.origin + window.location.pathname + window.location.search
+      }
+    });
+
+    if (error) throw error;
+
+  } catch (error) {
+    showMessage(error.message, 'error');
+  }
+}
+
        
 
         // Show authorization section for OAuth2 flow
