@@ -479,7 +479,13 @@
                                            autoRefreshToken: true
                                            } 
                                           });
-
+// ✅ Add this immediately after
+supabase.auth.onAuthStateChange((event, session) => {
+  if (session && !oauthParams) {
+    const token = session.access_token;
+    window.location.href = 'bravo://onboarding?token=' + token;
+  }
+});
         let currentTab = 'signin';
         let oauthParams = null;
         let currentUser = null;
