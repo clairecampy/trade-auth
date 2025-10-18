@@ -486,6 +486,24 @@ supabase.auth.onAuthStateChange((event, session) => {
     window.location.href = 'bravo://onboarding?token=' + token;
   }
 });
+        // ✅ Email/password login function
+async function signInWithEmail(email, password) {
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password
+  });
+
+  if (error) {
+    showMessage(error.message, 'error');
+    return;
+  }
+
+  const token = data.session?.access_token;
+  if (token && !oauthParams) {
+    window.location.href = 'bravo://onboarding?token=' + token;
+  }
+}
+
         let currentTab = 'signin';
         let oauthParams = null;
         let currentUser = null;
