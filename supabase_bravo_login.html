@@ -619,15 +619,21 @@ async function checkAuth() {
 
                 if (error) throw error;
 
-                currentUser = data.user;
+currentUser = data.user;
 
-                if (oauthParams) {
-                    // Directly authorize and redirect for OAuth flow
-                    authorizeApplication(data.session);
-                } else {
-                    showMessage('Successfully signed in!', 'success');
-                    showUserSection(data.user);
-                }
+if (oauthParams) {
+  // Directly authorize and redirect for OAuth flow
+  authorizeApplication(data.session);
+} else {
+  const token = data.session?.access_token;
+  if (token) {
+    window.location.href = 'bravo://onboarding?token=' + token;
+    return;
+  }
+  showMessage('Successfully signed in!', 'success');
+  showUserSection(data.user);
+}
+
 
             } catch (error) {
                 showMessage(error.message, 'error');
@@ -659,16 +665,22 @@ async function checkAuth() {
                 if (data.user && !data.session) {
                     showMessage('Please check your email to confirm your account!', 'success');
                 } else if (data.session) {
-                    currentUser = data.user;
+  currentUser = data.user;
 
-                    if (oauthParams) {
-                        // Directly authorize and redirect for OAuth flow
-                        authorizeApplication(data.session);
-                    } else {
-                        showMessage('Account created successfully!', 'success');
-                        showUserSection(data.user);
-                    }
-                }
+  if (oauthParams) {
+    // Directly authorize and redirect for OAuth flow
+    authorizeApplication(data.session);
+  } else {
+    const token = data.session.access_token;
+    if (token) {
+      window.location.href = 'bravo://onboarding?token=' + token;
+      return;
+    }
+    showMessage('Account created successfully!', 'success');
+    showUserSection(data.user);
+  }
+}
+
 
             } catch (error) {
                 showMessage(error.message, 'error');
