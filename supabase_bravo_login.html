@@ -688,7 +688,7 @@ async function signInWithGitHub() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: window.location.origin + window.location.pathname + window.location.search
+        redirectTo: 'https://clairecampy.github.io/trade-auth/supabase_bravo_login.html'
       }
     });
 
