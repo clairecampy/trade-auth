@@ -840,27 +840,7 @@ async function signInWithGitHub() {
             document.getElementById('message-container').innerHTML = '';
         }
 
-        // Listen for auth state changes
-     supabase.auth.onAuthStateChange((event, session) => {
-  if (event === 'SIGNED_IN' && session) {
-    currentUser = session.user;
 
-    const token = session.access_token;
-    if (token && !oauthParams) {
-      window.location.href = 'bravo://onboarding?token=' + token;
-      return;
-    }
-
-    if (oauthParams) {
-      authorizeApplication(session);
-    } else {
-      showUserSection(session.user);
-    }
-  } else if (event === 'SIGNED_OUT') {
-    currentUser = null;
-    showAuthSection();
-  }
-});
     </script>
 </body>
 
