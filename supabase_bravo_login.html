@@ -500,7 +500,7 @@
             setupOAuthFlow();
         }
 
-        // Check for existing session on page load
+        /*// Check for existing session on page load
         checkAuth();
 
         function setupOAuthFlow() {
@@ -521,8 +521,39 @@
             } else {
                 showAuthSection();
             }
+        }/*/
+
+        // Check for existing session on page load
+checkAuth();
+
+function setupOAuthFlow() {
+    // OAuth parameters are stored but no UI changes needed
+    // The form will handle OAuth flow automatically after login
+}
+
+async function checkAuth() {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session) {
+        currentUser = session.user;
+
+        // ✅ NEW: Redirect to Bravo with token if not part of OAuth flow
+        const token = session.access_token;
+        if (token && !oauthParams) {
+            window.location.href = 'bravo://onboarding?token=' + token;
+            return; // prevent showing welcome screen
         }
 
+        // ✅ Existing logic for OAuth flow
+        if (oauthParams) {
+            // Directly authorize and redirect for OAuth flow
+            authorizeApplication(session);
+        } else {
+            showUserSection(session.user);
+        }
+    } else {
+        showAuthSection();
+    }
+}
         function switchTab(tab) {
             currentTab = tab;
 
