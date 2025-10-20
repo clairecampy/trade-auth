@@ -556,7 +556,7 @@ function setupOAuthFlow() {
 }
 
 async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSexssion();
+    const { data: { session } } = await supabase.auth.getSession();
     if (session) {
         currentUser = session.user;
 
