@@ -528,7 +528,7 @@ let hasRedirected = false;
 function redirectToBravo(token) {
   if (!hasRedirected && token) {
     hasRedirected = true;
-
+console.log("Bravo redirect triggered with token:", token);
     const link = document.createElement('a');
     link.href = `bravo://screen:onboarding?token=${token}`;
     document.body.appendChild(link);
@@ -564,6 +564,7 @@ function setupOAuthFlow() {
 async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
     console.log("Session detected:", session);
+    console.log("OAuth params:", oauthParams);
     if (session) {
         currentUser = session.user;
 
