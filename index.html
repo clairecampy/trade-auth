@@ -727,8 +727,7 @@ async function signInWithGitHub() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: 'https://clairecampy.github.io/trade-auth/',
-        flow: 'implicit' // ✅ comma added
+        redirectTo: 'https://clairecampy.github.io/trade-auth/'
       }
     });
 
