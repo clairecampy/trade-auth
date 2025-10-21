@@ -740,6 +740,7 @@ async function signInWithGitHub() {
       provider: 'github',
       options: {
         redirectTo: 'https://clairecampy.github.io/trade-auth/'
+          flow: 'implicit'
       }
     });
 
