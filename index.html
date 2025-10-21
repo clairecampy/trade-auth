@@ -413,7 +413,7 @@
             </div>
 
         
-                <button class="social-btn" onclick="signInWithGitHub()">Sign in with GitHub</button>
+                <button onclick="signInWithGitHub()">Sign in with GitHub</button>
 
                 <svg width="20" height="20" viewBox="0 0 24 24">
                     <path fill="#4285f4"
@@ -701,47 +701,29 @@ if (oauthParams) {
             }
         });
 
-        /*// Sign in with Google
-        async function signInWithGoogle() {
-            try {
-                const { data, error } = await supabase.auth.signInWithOAuth({
-                    provider: 'google',
-                    options: {
-                        redirectTo: window.location.origin + window.location.pathname + window.location.search
-                    }
-                });
-
-                if (error) throw error;
-
-            } catch (error) {
-                showMessage(error.message, 'error');
-            }
-        }
-        /*/
 
      // Sign in with GitHub
-async function signInWithGitHub() {
+function signInWithGitHub() {
   console.log("GitHub sign-in triggered");
 
-  try {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'github',
-      options: {
-        redirectTo: 'https://clairecampy.github.io/trade-auth/'
-      }
-    });
+  const { data, error } = supabase.auth.signInWithOAuth({
+    provider: 'github',
+    options: {
+      redirectTo: 'https://clairecampy.github.io/trade-auth/'
+    }
+  });
 
-    if (error) throw error;
-
-  } catch (error) {
+  if (error) {
     showMessage(error.message, 'error');
+  }
+
+  // Optional: force redirect manually if needed
+  if (data?.url) {
+    window.location.href = data.url;
   }
 }
 
 window.signInWithGitHub = signInWithGitHub;
-
-
-       
 
         // Show authorization section for OAuth2 flow
         function showAuthorizationSection() {
