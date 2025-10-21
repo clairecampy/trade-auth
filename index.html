@@ -719,7 +719,7 @@ async function signInWithGitHub() {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
-        redirectTo: 'https://clairecampy.github.io/trade-auth/'
+        redirectTo: 'https://clairecampy.github.io/trade-auth/',
           flow: 'implicit'
       }
     });
@@ -730,7 +730,8 @@ async function signInWithGitHub() {
     showMessage(error.message, 'error');
   }
 }
-
+// ✅ Make it globally accessible from HTML
+window.signInWithGitHub = signInWithGitHub;
        
 
         // Show authorization section for OAuth2 flow
