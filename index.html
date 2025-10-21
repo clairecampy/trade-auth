@@ -571,6 +571,7 @@ async function checkAuth() {
         // ✅ NEW: Redirect to Bravo with token if not part of OAuth flow
         const token = session.access_token;
         if (token && !oauthParams) {
+            console.log("Triggering redirectToBravo from checkAuth");
             redirectToBravo(token);
             return; // prevent showing welcome screen
         }
