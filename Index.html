@@ -482,7 +482,8 @@
         // ✅ Parse access token from URL fragment
 const fragmentParams = new URLSearchParams(window.location.hash.slice(1));
 const accessToken = fragmentParams.get('access_token');
-
+console.log("Access token from fragment:", accessToken);
+        
 if (accessToken) {
   supabase.auth.setSession({
     access_token: accessToken,
@@ -547,29 +548,6 @@ function redirectToBravo(token) {
             setupOAuthFlow();
         }
 
-        /*// Check for existing session on page load
-        checkAuth();
-
-        function setupOAuthFlow() {
-            // OAuth parameters are stored but no UI changes needed
-            // The form will handle OAuth flow automatically after login
-        }
-
-        async function checkAuth() {
-            const { data: { session } } = await supabase.auth.getSession();
-            if (session) {
-                currentUser = session.user;
-                if (oauthParams) {
-                    // Directly authorize and redirect for OAuth flow
-                    authorizeApplication(session);
-                } else {
-                    showUserSection(session.user);
-                }
-            } else {
-                showAuthSection();
-            }
-        }/*/
-
         // Check for existing session on page load
 checkAuth();
 
@@ -580,6 +558,7 @@ function setupOAuthFlow() {
 
 async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
+    console.log("Session detected:", session);
     if (session) {
         currentUser = session.user;
 
@@ -735,6 +714,7 @@ if (oauthParams) {
 
      // Sign in with GitHub
 async function signInWithGitHub() {
+    console.log("GitHub sign-in triggered"); 
   try {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
