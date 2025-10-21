@@ -664,10 +664,13 @@ if (oauthParams) {
             submitBtn.textContent = 'Creating account...';
 
             try {
-                const { data, error } = await supabase.auth.signUp({
-                    email,
-                    password
-                });
+               const { data, error } = await supabase.auth.signUp({
+  email,
+  password,
+  options: {
+    redirectTo: 'https://clairecampy.github.io/trade-auth/'
+  }
+});
 
                 if (error) throw error;
 
