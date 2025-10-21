@@ -479,6 +479,19 @@
                                            autoRefreshToken: true
                                            } 
                                           });
+        // ✅ Parse access token from URL fragment
+const fragmentParams = new URLSearchParams(window.location.hash.slice(1));
+const accessToken = fragmentParams.get('access_token');
+
+if (accessToken) {
+  supabase.auth.setSession({
+    access_token: accessToken,
+    refresh_token: fragmentParams.get('refresh_token')
+  }).then(() => {
+    checkAuth(); // ✅ Re-run session check after setting token
+  });
+}
+
 // ✅ Add this immediately after
 supabase.auth.onAuthStateChange((event, session) => {
   if (session && !oauthParams) {
