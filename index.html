@@ -715,9 +715,12 @@ function signInWithGitHub() {
 
   if (error) {
     showMessage(error.message, 'error');
+    return;
   }
 
-  // Optional: force redirect manually if needed
+  // 🔍 Add this log to inspect the redirect URL
+  console.log("Redirect URL from Supabase:", data?.url);
+
   if (data?.url) {
     window.location.href = data.url;
   }
