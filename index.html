@@ -527,7 +527,7 @@ let hasRedirected = false;
 function redirectToBravo(token) {
   if (!hasRedirected && token) {
     hasRedirected = true;
-    redirectToBravo(token);
+    window.location.href = `bravo://screen:onboarding?token=${token}`;
   }
 }
     
