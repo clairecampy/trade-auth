@@ -483,7 +483,7 @@
 supabase.auth.onAuthStateChange((event, session) => {
   if (session && !oauthParams) {
     const token = session.access_token;
-    window.location.href = 'bravo://onboarding?token=' + token;
+   redirectToBravo(token);
   }
 });
         // ✅ Email/password login function
@@ -500,7 +500,7 @@ async function signInWithEmail(email, password) {
 
   const token = data.session?.access_token;
   if (token && !oauthParams) {
-    window.location.href = 'bravo://onboarding?token=' + token;
+    redirectToBravo(token);
   }
 }
 
@@ -508,6 +508,16 @@ async function signInWithEmail(email, password) {
         let oauthParams = null;
         let currentUser = null;
 
+        //New redirect helper 
+let hasRedirected = false;
+
+function redirectToBravo(token) {
+  if (!hasRedirected && token) {
+    hasRedirected = true;
+    redirectToBravo(token);
+  }
+}
+    
         // Parse URL parameters on page load
         const urlParams = new URLSearchParams(window.location.search);
 
@@ -563,7 +573,7 @@ async function checkAuth() {
         // ✅ NEW: Redirect to Bravo with token if not part of OAuth flow
         const token = session.access_token;
         if (token && !oauthParams) {
-            window.location.href = 'bravo://onboarding?token=' + token;
+            redirectToBravo(token);
             return; // prevent showing welcome screen
         }
 
@@ -627,13 +637,12 @@ if (oauthParams) {
 } else {
   const token = data.session?.access_token;
   if (token) {
-    window.location.href = 'bravo://onboarding?token=' + token;
+    redirectToBravo(token);
     return;
   }
   showMessage('Successfully signed in!', 'success');
   showUserSection(data.user);
 }
-
 
             } catch (error) {
                 showMessage(error.message, 'error');
@@ -673,7 +682,7 @@ if (oauthParams) {
   } else {
     const token = data.session.access_token;
     if (token) {
-      window.location.href = 'bravo://onboarding?token=' + token;
+      redirectToBravo(token);
       return;
     }
     showMessage('Account created successfully!', 'success');
@@ -689,10 +698,6 @@ if (oauthParams) {
                 submitBtn.textContent = 'Sign Up';
             }
         });
-
-
-
-
 
         /*// Sign in with Google
         async function signInWithGoogle() {
