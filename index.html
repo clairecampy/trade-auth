@@ -528,7 +528,12 @@ let hasRedirected = false;
 function redirectToBravo(token) {
   if (!hasRedirected && token) {
     hasRedirected = true;
-    window.location.href = `bravo://screen:onboarding?token=${token}`;
+
+    const link = document.createElement('a');
+    link.href = `bravo://screen:onboarding?token=${token}`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   }
 }
     
