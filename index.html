@@ -714,13 +714,14 @@ if (oauthParams) {
 
      // Sign in with GitHub
 async function signInWithGitHub() {
-    console.log("GitHub sign-in triggered"); 
+  console.log("GitHub sign-in triggered");
+
   try {
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'github',
       options: {
         redirectTo: 'https://clairecampy.github.io/trade-auth/',
-          flow: 'implicit'
+        flow: 'implicit' // ✅ aligned correctly
       }
     });
 
@@ -730,8 +731,9 @@ async function signInWithGitHub() {
     showMessage(error.message, 'error');
   }
 }
-// ✅ Make it globally accessible from HTML
+
 window.signInWithGitHub = signInWithGitHub;
+
        
 
         // Show authorization section for OAuth2 flow
