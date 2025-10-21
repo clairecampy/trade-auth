@@ -721,7 +721,7 @@ async function signInWithGitHub() {
       provider: 'github',
       options: {
         redirectTo: 'https://clairecampy.github.io/trade-auth/',
-        flow: 'implicit' // ✅ aligned correctly
+        flow: 'implicit' // ✅ comma added
       }
     });
 
@@ -731,7 +731,9 @@ async function signInWithGitHub() {
     showMessage(error.message, 'error');
   }
 }
+
 window.signInWithGitHub = signInWithGitHub;
+
 
        
 
