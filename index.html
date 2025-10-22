@@ -486,18 +486,12 @@
     debug.textContent += message + '\n';
   }
 }
-
-logDebug("🔄 Page loaded: " + window.location.href);
-
+logDebug("Page loaded: " + window.location.href);
 const fragment = window.location.hash;
 logDebug("🔍 URL fragment: " + fragment);
-
 const fragmentParams = new URLSearchParams(window.location.hash.slice(1));
 const accessToken = fragmentParams.get('access_token');
-logDebug("Access token from fragment: " + accessToken);
-
-     
-        
+logDebug("Access token from fragment: " + accessToken);       
 if (accessToken) {
   supabase.auth.setSession({
     access_token: accessToken,
