@@ -479,6 +479,10 @@
                                            autoRefreshToken: true
                                            } 
                                           });
+        / ✅ Add these logs right after initialization
+console.log("🔄 Page loaded:", window.location.href);
+const fragment = window.location.hash;
+console.log("🔍 URL fragment:", fragment);
         // ✅ Parse access token from URL fragment
 const fragmentParams = new URLSearchParams(window.location.hash.slice(1));
 const accessToken = fragmentParams.get('access_token');
