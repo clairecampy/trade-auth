@@ -706,27 +706,32 @@ if (oauthParams) {
 function signInWithGitHub() {
   console.log("GitHub sign-in triggered");
 
-  const { data, error } = supabase.auth.signInWithOAuth({
+  supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
       redirectTo: 'https://clairecampy.github.io/trade-auth/'
     }
+  }).then(({ data, error }) => {
+    if (error) {
+      showMessage(error.message, 'error');
+      return;
+    }
+
+    console.log("Redirect URL from Supabase:", data?.url);
+
+    if (data?.url) {
+      window.location.href = data.url;
+    } else {
+      console.warn("No redirect URL returned from Supabase.");
+    }
+  }).catch((err) => {
+    console.error("OAuth initiation failed:", err);
+    showMessage("OAuth initiation failed", 'error');
   });
-
-  if (error) {
-    showMessage(error.message, 'error');
-    return;
-  }
-
-  // 🔍 Add this log to inspect the redirect URL
-  console.log("Redirect URL from Supabase:", data?.url);
-
-  if (data?.url) {
-    window.location.href = data.url;
-  }
 }
 
 window.signInWithGitHub = signInWithGitHub;
+
 
         // Show authorization section for OAuth2 flow
         function showAuthorizationSection() {
