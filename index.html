@@ -366,6 +366,7 @@
 </head>
 
 <body>
+    <pre id="debug" style="white-space:pre-wrap; background:#f9f9f9; padding:1em; border:1px solid #ccc;"></pre>
     <div class="login-container">
         <div class="logo">
             <h1>Welcome</h1>
@@ -479,6 +480,22 @@
                                            autoRefreshToken: true
                                            } 
                                           });
+        function logDebug(message) {
+  const debug = document.getElementById('debug');
+  if (debug) {
+    debug.textContent += message + '\n';
+  }
+}
+
+logDebug("🔄 Page loaded: " + window.location.href);
+
+const fragment = window.location.hash;
+logDebug("🔍 URL fragment: " + fragment);
+
+const fragmentParams = new URLSearchParams(window.location.hash.slice(1));
+const accessToken = fragmentParams.get('access_token');
+logDebug("Access token from fragment: " + accessToken);
+
         / ✅ Add these logs right after initialization
 console.log("🔄 Page loaded:", window.location.href);
 const fragment = window.location.hash;
