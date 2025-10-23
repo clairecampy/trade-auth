@@ -534,17 +534,19 @@ async function signInWithEmail(email, password) {
 let hasRedirected = false;
 
 function redirectToBravo(token) {
-  if (!hasRedirected && token) {
+  if (!hasRedirected && token && typeof token === 'string' && token.length > 10) {
     hasRedirected = true;
-console.log("Bravo redirect triggered with token:", token);
+    logDebug("✅ Bravo redirect triggered with token: " + token);
     const link = document.createElement('a');
     link.href = `bravo://screen:onboarding?token=${token}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+  } else {
+    logDebug("⚠️ Bravo redirect skipped — token missing or invalid");
   }
 }
-    
+
         // Parse URL parameters on page load
         const urlParams = new URLSearchParams(window.location.search);
 
