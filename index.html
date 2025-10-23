@@ -503,11 +503,22 @@ if (accessToken) {
 
 // ✅ Add this immediately after
 supabase.auth.onAuthStateChange((event, session) => {
-  if (session && !oauthParams) {
-    const token = session.access_token;
-   redirectToBravo(token);
+  logDebug("🔁 Auth state changed: " + event);
+
+  if (
+    session &&
+    session.access_token &&
+    typeof session.access_token === 'string' &&
+    session.access_token.length > 10 &&
+    !oauthParams
+  ) {
+    logDebug("✅ Session valid — redirecting to Bravo");
+    redirectToBravo(session.access_token);
+  } else {
+    logDebug("⚠️ Session invalid or missing token — no redirect");
   }
 });
+
         // ✅ Email/password login function
 async function signInWithEmail(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({
