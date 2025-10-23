@@ -549,7 +549,7 @@ function redirectToBravo(token) {
     hasRedirected = true;
     logDebug("✅ Bravo redirect triggered with token: " + token);
     const link = document.createElement('a');
-    link.href = `link.href = `bravo://screen:intro3?token=${token}`;
+    link.href = `bravo://screen:intro3?token=${token}`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
