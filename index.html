@@ -548,10 +548,11 @@ function redirectToBravo(token) {
   if (!hasRedirected && token && typeof token === 'string' && token.length > 10) {
     hasRedirected = true;
     logDebug("✅ Bravo redirect triggered with token: " + token);
-
-    setTimeout(() => {
-      window.location.href = `https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR49DR1ANAY3KA8QANCZ3`;
-    }, 300);
+const link = document.createElement('a');
+    link.href = `https://bravostudio.dynalinks.app/?link=bravo://screen:onboarding?token=${token}&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   } else {
     logDebug("⚠️ Bravo redirect skipped — token missing or invalid");
   }
