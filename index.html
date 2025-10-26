@@ -366,7 +366,6 @@
 </head>
 
 <body>
-    <pre id="debug" style="white-space:pre-wrap; background:#f9f9f9; padding:1em; border:1px solid #ccc;"></pre>
     <div class="login-container">
         <div class="logo">
             <h1>Welcome</h1>
@@ -480,18 +479,11 @@
                                            autoRefreshToken: true
                                            } 
                                           });
-        function logDebug(message) {
-  const debug = document.getElementById('debug');
-  if (debug) {
-    debug.textContent += message + '\n';
-  }
-}
-logDebug("Page loaded: " + window.location.href);
+   
+
 const fragment = window.location.hash;
-logDebug("🔍 URL fragment: " + fragment);
 const fragmentParams = new URLSearchParams(window.location.hash.slice(1));
-const accessToken = fragmentParams.get('access_token');
-logDebug("Access token from fragment: " + accessToken);       
+const accessToken = fragmentParams.get('access_token');       
 if (accessToken) {
   supabase.auth.setSession({
     access_token: accessToken,
@@ -503,7 +495,6 @@ if (accessToken) {
 
 // ✅ Add this immediately after
 supabase.auth.onAuthStateChange((event, session) => {
-  logDebug("🔁 Auth state changed: " + event);
 
   if (
     session &&
@@ -512,10 +503,8 @@ supabase.auth.onAuthStateChange((event, session) => {
     session.access_token.length > 10 &&
     !oauthParams
   ) {
-    logDebug("✅ Session valid — redirecting to Bravo");
     redirectToBravo(session.access_token);
   } else {
-    logDebug("⚠️ Session invalid or missing token — no redirect");
   }
 });
 
@@ -547,7 +536,6 @@ let hasRedirected = false;
 function redirectToBravo(token) {
   if (!hasRedirected && token && typeof token === 'string' && token.length > 10) {
     hasRedirected = true;
-    logDebug("✅ Bravo redirect triggered with token: " + token);
 
     // Store token for Bravo to access later
     localStorage.setItem('access_token', token);
@@ -559,7 +547,6 @@ function redirectToBravo(token) {
     link.click();
     document.body.removeChild(link);
   } else {
-    logDebug("⚠️ Bravo redirect skipped — token missing or invalid");
   }
 }
         // Parse URL parameters on page load
