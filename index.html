@@ -540,13 +540,11 @@ function redirectToBravo(token) {
     // Store token for Bravo to access later
     localStorage.setItem('access_token', token);
 
-    // ✅ Direct redirect to Bravo Vision deep link
- window.open(
-      'https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3',
-      '_blank'
-    );
+    // ✅ Direct redirect to Bravo Vision deep link in same tab
+    window.location.href = 'https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3';
   }
 }
+
 
         // Parse URL parameters on page load
         const urlParams = new URLSearchParams(window.location.search);
@@ -663,28 +661,24 @@ if (oauthParams) {
         });
 
         // Handle sign up form
-        document.getElementById('signup-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+    document.getElementById('signup-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
 
-            const email = document.getElementById('signup-email').value;
-            const password = document.getElementById('signup-password').value;
-            const submitBtn = e.target.querySelector('.btn');
+  const email = document.getElementById('signup-email').value;
+  const password = document.getElementById('signup-password').value;
+  const submitBtn = e.target.querySelector('.btn');
 
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Creating account...';
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Creating account...';
 
-            try {
-               const { data, error } = await supabase.auth.signUp({
-  email,
-  password,
-  options: {
-    redirectTo: '    // ✅ Direct redirect to Bravo Vision deep link
-setTimeout(() => {
-  window.open('https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3', '_blank');
-}, 500);'
-  }
-});
-
+  try {
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        redirectTo: 'https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3'
+      }
+    });
                 if (error) throw error;
 
                 if (data.user && !data.session) {
@@ -717,22 +711,25 @@ setTimeout(() => {
 
 
      // Sign in with GitHub
+// ✅ Sign in with GitHub
 function signInWithGitHub() {
   console.log("GitHub sign-in triggered");
 
   supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: '    // ✅ Direct redirect to Bravo Vision deep link
-setTimeout(() => {
-  window.open('https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3', '_blank');
-}, 500);'
+      redirectTo: 'https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3'
     }
   }).then(({ data, error }) => {
     if (error) {
       showMessage(error.message, 'error');
       return;
     }
+
+    // Optional: handle post-auth logic here if needed
+  });
+}
+
 
     console.log("Redirect URL from Supabase:", data?.url);
 
