@@ -479,7 +479,7 @@
                                            autoRefreshToken: true
                                            } 
                                           });
-
+console.log("Page loaded at:", window.location.href);
   const urlParams = new URLSearchParams(window.location.search);
   const token = urlParams.get('access_token');
   console.log("Token received via query string:", token);
