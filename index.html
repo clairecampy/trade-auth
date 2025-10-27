@@ -710,14 +710,13 @@ if (oauthParams) {
         });
 
 
-     // Sign in with GitHub
-function signInWithGitHub() {
+ function signInWithGitHub() {
   console.log("GitHub sign-in triggered");
 
   supabase.auth.signInWithOAuth({
     provider: 'github',
     options: {
-      redirectTo: 'https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3'
+      redirectTo: 'https://bravostudio.dynalinks.app/?link=...'
     }
   }).then(({ data, error }) => {
     if (error) {
@@ -736,8 +735,8 @@ function signInWithGitHub() {
     console.error("OAuth initiation failed:", err);
     showMessage("OAuth initiation failed", 'error');
   });
+} // ✅ ← This was missing
 
-// ✅ Make sure the function is globally accessible
 window.signInWithGitHub = signInWithGitHub;
 
 
