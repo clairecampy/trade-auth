@@ -479,11 +479,24 @@
                                            autoRefreshToken: true
                                            } 
                                           });
-   
 
+  const urlParams = new URLSearchParams(window.location.search);
+  const token = urlParams.get('access_token');
+  console.log("Token received via query string:", token);
+
+  if (token) {
+    supabase.auth.setSession({
+      access_token: token,
+      refresh_token: '' // optional
+    }).then(() => {
+      checkAuth(); // re-run session check
+    });
+  }   
+// Token extraction from URL fragment e.g. access_token. This is how supabase returns tokens after OAuth login
 const fragment = window.location.hash;
-const fragmentParams = new URLSearchParams(window.location.hash.slice(1));
-const accessToken = fragmentParams.get('access_token');       
+console.log("URL fragment:", fragment); 
+const fragmentParams = new URLSearchParams(fragment.slice(1));
+const accessToken = fragmentParams.get('access_token') || fragmentParams.get('accesstoken');      
 if (accessToken) {
   supabase.auth.setSession({
     access_token: accessToken,
@@ -493,7 +506,7 @@ if (accessToken) {
   });
 }
 
-// ✅ Add this immediately after
+// Listens for changes in the auth state and redirects to Bravo if a valid token is present. Use of outhparams helps avoid interfering with OAuth2 flows. 
 supabase.auth.onAuthStateChange((event, session) => {
 
   if (
@@ -505,10 +518,12 @@ supabase.auth.onAuthStateChange((event, session) => {
   ) {
     redirectToBravo(session.access_token);
   } else {
+    console.warn("Auth state change triggered but no valid token found.");
+    showMessage("Authentication incomplete. Please try logging in again.", 'error');
   }
 });
 
-        // ✅ Email/password login function
+        // ✅ Email/password login function which redirects to bravo if successful. 
 async function signInWithEmail(email, password) {
   const { data, error } = await supabase.auth.signInWithPassword({
     email,
@@ -520,33 +535,34 @@ async function signInWithEmail(email, password) {
     return;
   }
 
-  const token = data.session?.access_token;
-  if (token && !oauthParams) {
-    redirectToBravo(token);
-  }
+ if (data.session && data.session.access_token) {
+  const token = data.session.access_token;
+  redirectToBravo(token);
 }
 
         let currentTab = 'signin';
         let oauthParams = null;
         let currentUser = null;
 
- // ✅ Clean redirect helper for Bravo Vision
+ // ✅ Clean redirect helper for Bravo Vision. This prevents multiple redirects and sends the token to Bravo, and stores it in localstorage which is fine for bravo to access. 
 let hasRedirected = false;
 
 function redirectToBravo(token) {
   if (!hasRedirected && token && typeof token === 'string' && token.length > 10) {
     hasRedirected = true;
 
-    // Store token for Bravo to access later
+    // ✅ Optional: store in localStorage (only if Bravo uses it)
     localStorage.setItem('access_token', token);
 
-    // ✅ Direct redirect to Bravo Vision deep link in same tab
-    window.location.href = 'https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3';
+    // ✅ Embed token in query string for Bravo to read
+    const encodedLink = encodeURIComponent(`https://clairecampy.github.io/trade-auth/?access_token=${token}`);
+    const finalRedirect = `https://bravostudio.dynalinks.app/?link=${encodedLink}&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3`;
+
+    window.location.href = finalRedirect;
   }
 }
 
-
-        // Parse URL parameters on page load
+        // Parse URL parameters on page load. This detects if the page was loaded as part of an OAuth2 authorisation request. 
         const urlParams = new URLSearchParams(window.location.search);
 
         // Check for OAuth2 authorization request parameters
@@ -569,7 +585,7 @@ function setupOAuthFlow() {
     // OAuth parameters are stored but no UI changes needed
     // The form will handle OAuth flow automatically after login
 }
-
+//Core logic. If a session exists and it's not part of an OAuth2 flow then redirect to Bravo. If it is part of OAuth2 then call authorizeapplication() otherwise show login UI. 
 async function checkAuth() {
     const { data: { session } } = await supabase.auth.getSession();
     console.log("Session detected:", session);
