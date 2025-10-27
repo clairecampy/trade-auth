@@ -493,13 +493,19 @@ if (token) {
       checkAuth(); // ✅ session restored
     } else {
       // 🔧 fallback: try to fetch user manually
-      const { data: user, error } = await supabase.auth.getUser(token);
-      if (user) {
-        currentUser = user;
-        redirectToBravo(token);
-      } else {
-        showMessage("Token invalid or expired", 'error');
-      }
+ const { data: user, error } = await supabase.auth.getUser(token);
+if (user) {
+  currentUser = user;
+
+  // ✅ Prevent redirect loop if already on tokenized URL
+  const currentUrl = window.location.href;
+  const isReturningFromBravo = currentUrl.includes('access_token=');
+  if (!hasRedirected && !isReturningFromBravo) {
+    redirectToBravo(token);
+  }
+} else {
+  showMessage("Token invalid or expired", 'error');
+}
     }
   });
 }
