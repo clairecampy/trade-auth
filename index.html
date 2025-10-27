@@ -488,27 +488,28 @@ if (token) {
   supabase.auth.setSession({
     access_token: token,
     refresh_token: ''
-  }).then(async ({ data, error }) => {
+  }).then(async ({ data }) => {
     if (data?.session) {
       checkAuth(); // ✅ session restored
     } else {
-      // 🔧 fallback: try to fetch user manually
- const { data: user, error } = await supabase.auth.getUser(token);
-if (user) {
-  currentUser = user;
+      // 🔧 fallback: manually fetch user
+      const { data: user, error } = await supabase.auth.getUser(token);
+      if (user) {
+        currentUser = user;
 
-  // ✅ Prevent redirect loop if already on tokenized URL
-  const currentUrl = window.location.href;
-  const isReturningFromBravo = currentUrl.includes('access_token=');
-  if (!hasRedirected && !isReturningFromBravo) {
-    redirectToBravo(token);
-  }
-} else {
-  showMessage("Token invalid or expired", 'error');
-}
+        // ✅ Prevent redirect loop
+        const currentUrl = window.location.href;
+        const isReturningFromBravo = currentUrl.includes('access_token=');
+        if (!hasRedirected && !isReturningFromBravo) {
+          redirectToBravo(token);
+        }
+      } else {
+        showMessage("Token invalid or expired", 'error');
+      }
     }
   });
 }
+
  
 // Token extraction from URL fragment e.g. access_token. This is how supabase returns tokens after OAuth login
 const fragment = window.location.hash;
