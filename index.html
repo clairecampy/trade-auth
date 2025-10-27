@@ -557,23 +557,27 @@ async function signInWithEmail(email, password) {
         let currentUser = null;
 
  // ✅ Clean redirect helper for Bravo Vision. This prevents multiple redirects and sends the token to Bravo, and stores it in localstorage which is fine for bravo to access. 
-let hasRedirected = false;
+let hasRedirected = false; // ✅ Declare this globally
 
 function redirectToBravo(token) {
-  if (
-    hasRedirected ||
-    !token ||
-    typeof token !== 'string' ||
-    token.length < 10
-  ) return;
+  // ✅ Prevent redirect if already done
+  if (hasRedirected) return;
 
-  // ✅ Prevent redirect loop: only redirect if not already coming from Bravo
+  // ✅ Prevent redirect if token is invalid
+  if (!token || typeof token !== 'string' || token.length < 10) return;
+
+  // ✅ Prevent redirect loop: if already on a URL with access_token, don’t redirect again
   const currentUrl = window.location.href;
-  if (currentUrl.includes('access_token=')) return;
+  const isReturningFromBravo = currentUrl.includes('access_token=');
+  if (isReturningFromBravo) return;
 
   hasRedirected = true;
 
-  localStorage.setItem('access_token', token);
+  try {
+    localStorage.setItem('access_token', token); // ✅ Safe to store
+  } catch (e) {
+    console.warn("LocalStorage failed:", e);
+  }
 
   const encodedLink = encodeURIComponent(`https://clairecampy.github.io/trade-auth/?access_token=${token}`);
   const finalRedirect = `https://bravostudio.dynalinks.app/?link=${encodedLink}&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3`;
