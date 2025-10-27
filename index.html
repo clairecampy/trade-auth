@@ -481,34 +481,34 @@
                                           });
 console.log("Page loaded at:", window.location.href);
   const urlParams = new URLSearchParams(window.location.search);
-  const token = urlParams.get('access_token');
-  console.log("Token received via query string:", token);
+// 1. Declare token
+const token = urlParams.get('access_token');
 
+// 2. Set session or fallback to getUser()
 if (token) {
-  supabase.auth.setSession({
-    access_token: token,
-    refresh_token: ''
-  }).then(async ({ data }) => {
-    if (data?.session) {
-      checkAuth(); // ✅ session restored
-    } else {
-      // 🔧 fallback: manually fetch user
-      const { data: user, error } = await supabase.auth.getUser(token);
-      if (user) {
-        currentUser = user;
-
-        // ✅ Prevent redirect loop
-        const currentUrl = window.location.href;
-        const isReturningFromBravo = currentUrl.includes('access_token=');
-        if (!hasRedirected && !isReturningFromBravo) {
+  supabase.auth.setSession({ access_token: token, refresh_token: '' })
+    .then(async ({ data }) => {
+      if (data?.session) {
+        checkAuth();
+      } else {
+        const { data: user } = await supabase.auth.getUser(token);
+        if (user) {
+          currentUser = user;
           redirectToBravo(token);
         }
-      } else {
-        showMessage("Token invalid or expired", 'error');
       }
-    }
-  });
+    });
 }
+
+// 3. Immediately attach onAuthStateChange
+supabase.auth.onAuthStateChange((event, session) => {
+  if (session && session.access_token && !oauthParams) {
+    redirectToBravo(session.access_token);
+  } else {
+    console.warn("Auth state change triggered but no valid token found.");
+    showMessage("Authentication incomplete. Please try logging in again.", 'error');
+  }
+});
 
  
 // Token extraction from URL fragment e.g. access_token. This is how supabase returns tokens after OAuth login
@@ -524,23 +524,6 @@ if (accessToken) {
     checkAuth(); // ✅ Re-run session check after setting token
   });
 }
-
-// Listens for changes in the auth state and redirects to Bravo if a valid token is present. Use of outhparams helps avoid interfering with OAuth2 flows. 
-supabase.auth.onAuthStateChange((event, session) => {
-
-  if (
-    session &&
-    session.access_token &&
-    typeof session.access_token === 'string' &&
-    session.access_token.length > 10 &&
-    !oauthParams
-  ) {
-    redirectToBravo(session.access_token);
-  } else {
-    console.warn("Auth state change triggered but no valid token found.");
-    showMessage("Authentication incomplete. Please try logging in again.", 'error');
-  }
-});
 
         // ✅ Email/password login function which redirects to bravo if successful. 
 async function signInWithEmail(email, password) {
