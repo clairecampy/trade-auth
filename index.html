@@ -711,7 +711,6 @@ if (oauthParams) {
 
 
      // Sign in with GitHub
-// ✅ Sign in with GitHub
 function signInWithGitHub() {
   console.log("GitHub sign-in triggered");
 
@@ -726,11 +725,6 @@ function signInWithGitHub() {
       return;
     }
 
-    // Optional: handle post-auth logic here if needed
-  });
-}
-
-
     console.log("Redirect URL from Supabase:", data?.url);
 
     if (data?.url) {
@@ -744,7 +738,9 @@ function signInWithGitHub() {
   });
 }
 
+// ✅ Make sure the function is globally accessible
 window.signInWithGitHub = signInWithGitHub;
+
 
 
         // Show authorization section for OAuth2 flow
