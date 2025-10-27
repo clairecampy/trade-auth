@@ -563,7 +563,9 @@ function redirectToBravo(token) {
 }
 
         // Parse URL parameters on page load. This detects if the page was loaded as part of an OAuth2 authorisation request. 
-        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('response_type')) {
+  // ✅ use urlParams without redeclaring
+}
 
         // Check for OAuth2 authorization request parameters
         if (urlParams.has('response_type') && urlParams.has('client_id') && urlParams.has('redirect_uri')) {
