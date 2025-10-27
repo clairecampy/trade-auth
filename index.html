@@ -562,17 +562,17 @@ function redirectToBravo(token) {
   }
 }
         // Check for OAuth2 authorization request parameters
-        if (urlParams.has('response_type') && urlParams.has('client_id') && urlParams.has('redirect_uri')) {
-            oauthParams = {
-                response_type: urlParams.get('response_type'),
-                client_id: urlParams.get('client_id'),
-                redirect_uri: urlParams.get('redirect_uri'),
-                scope: urlParams.get('scope') || 'read',
-                state: urlParams.get('state'),
-                client_name: urlParams.get('client_name') || 'Unknown Application'
-            };
-            setupOAuthFlow();
-        }
+if (urlParams.has('response_type') && urlParams.has('client_id') && urlParams.has('redirect_uri')) {
+  oauthParams = {
+    response_type: urlParams.get('response_type'),
+    client_id: urlParams.get('client_id'),
+    redirect_uri: urlParams.get('redirect_uri'),
+    scope: urlParams.get('scope') || 'read',
+    state: urlParams.get('state'),
+    client_name: urlParams.get('client_name') || 'Unknown Application'
+  };
+  setupOAuthFlow();
+}
 
         // Check for existing session on page load
 checkAuth();
