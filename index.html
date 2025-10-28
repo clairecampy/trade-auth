@@ -501,12 +501,13 @@ if (token) {
 
         const currentUrl = window.location.href;
         const isReturningFromBravo = currentUrl.includes('from=bravo');
-        console.log("🔍 Redirect guard check:", { hasRedirected, isReturningFromBravo });
+const isOnTradeAuth = currentUrl.includes('clairecampy.github.io/trade-auth');
+console.log("🔍 Redirect guard check:", { hasRedirected, isReturningFromBravo, isOnTradeAuth });
 
-        if (!hasRedirected && !isReturningFromBravo) {
-          console.log("🚀 Redirecting via fallback...");
-          redirectToBravo(token);
-        }
+if (!hasRedirected && !(isReturningFromBravo && isOnTradeAuth)) {
+  console.log("🚀 Redirecting via fallback...");
+  redirectToBravo(token);
+}
       } else {
         console.warn("❌ Fallback failed: token invalid or expired");
         showMessage("Token invalid or expired", 'error');
@@ -578,7 +579,13 @@ function redirectToBravo(token) {
   // ✅ Prevent redirect loop: if already on a URL with access_token, don’t redirect again
   const currentUrl = window.location.href;
   const isReturningFromBravo = currentUrl.includes('from=bravo');
-  if (isReturningFromBravo) return;
+const isOnTradeAuth = currentUrl.includes('clairecampy.github.io/trade-auth');
+
+if (hasRedirected || (isReturningFromBravo && isOnTradeAuth)) {
+  console.log("🔁 Redirect blocked: already returned from Bravo.");
+  return;
+}
+
 
   hasRedirected = true;
 
