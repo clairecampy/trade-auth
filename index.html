@@ -500,7 +500,7 @@ if (token) {
         currentUser = user;
 
         const currentUrl = window.location.href;
-        const isReturningFromBravo = currentUrl.includes('access_token=');
+        const isReturningFromBravo = currentUrl.includes('from=bravo');
         console.log("🔍 Redirect guard check:", { hasRedirected, isReturningFromBravo });
 
         if (!hasRedirected && !isReturningFromBravo) {
@@ -577,7 +577,7 @@ function redirectToBravo(token) {
 
   // ✅ Prevent redirect loop: if already on a URL with access_token, don’t redirect again
   const currentUrl = window.location.href;
-  const isReturningFromBravo = currentUrl.includes('access_token=');
+  const isReturningFromBravo = currentUrl.includes('from=bravo');
   if (isReturningFromBravo) return;
 
   hasRedirected = true;
@@ -588,7 +588,7 @@ function redirectToBravo(token) {
     console.warn("LocalStorage failed:", e);
   }
 
-  const encodedLink = encodeURIComponent(`https://clairecampy.github.io/trade-auth/?access_token=${token}`);
+  const encodedLink = encodeURIComponent(`https://clairecampy.github.io/trade-auth/?access_token=${token}&from=bravo`);
   const finalRedirect = `https://bravostudio.dynalinks.app/?link=${encodedLink}&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3`;
 
   window.location.href = finalRedirect;
