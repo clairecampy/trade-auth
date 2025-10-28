@@ -500,16 +500,19 @@ if (token) {
         currentUser = user.user;
 // ✅ Trigger your Edge Function here
   await fetch('https://hukkjktxwcceajwvnybm.supabase.co/functions/v1/bravo-token', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${token}`
-    },
-    body: JSON.stringify({
-      event: 'login',
-      user: currentUser
-    })
-  });
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    'Authorization': `Bearer ${token}`
+  },
+  body: JSON.stringify({
+    grant_type: 'authorization_code',
+    code: token,
+    client_id: oauthParams?.client_id || 'bravo',
+    redirect_uri: oauthParams?.redirect_uri || window.location.href
+  })
+});
+
         const currentUrl = window.location.href;
         const isReturningFromBravo = currentUrl.includes('from=bravo');
 const isOnTradeAuth = currentUrl.includes('clairecampy.github.io/trade-auth');
