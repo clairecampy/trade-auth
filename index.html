@@ -497,18 +497,18 @@ if (token) {
           redirectToBravo(token);
         }
       }
+
+      // ✅ Attach listener AFTER token handling
+      supabase.auth.onAuthStateChange((event, session) => {
+        if (session && session.access_token && !oauthParams) {
+          redirectToBravo(session.access_token);
+        } else {
+          console.warn("Auth state change triggered but no valid token found.");
+          showMessage("Authentication incomplete. Please try logging in again.", 'error');
+        }
+      });
     });
 }
-
-// 3. Immediately attach onAuthStateChange
-supabase.auth.onAuthStateChange((event, session) => {
-  if (session && session.access_token && !oauthParams) {
-    redirectToBravo(session.access_token);
-  } else {
-    console.warn("Auth state change triggered but no valid token found.");
-    showMessage("Authentication incomplete. Please try logging in again.", 'error');
-  }
-});
 
  
 // Token extraction from URL fragment e.g. access_token. This is how supabase returns tokens after OAuth login
