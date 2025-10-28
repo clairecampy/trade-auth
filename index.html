@@ -486,48 +486,48 @@ const token = urlParams.get('access_token');
 
 // 2. Set session or fallback to getUser()
 if (token) {
+    console.log("🔍 Extracted token:", token, "Length:", token?.length);
   supabase.auth.setSession({ access_token: token, refresh_token: '' })
-    .then(async ({ data }) => {
-      if (data?.session) {
-        console.log("✅ Session restored via setSession");
-        checkAuth();
+  .then(async ({ data }) => {
+    if (data?.session) {
+      console.log("✅ Session restored via setSession");
+      checkAuth();
+    } else {
+      const { data: user, error } = await supabase.auth.getUser(token);
+      console.log("🔍 Fallback getUser result:", user, error);
+
+      if (user) {
+        currentUser = user;
+
+        const currentUrl = window.location.href;
+        const isReturningFromBravo = currentUrl.includes('access_token=');
+        console.log("🔍 Redirect guard check:", { hasRedirected, isReturningFromBravo });
+
+        if (!hasRedirected && !isReturningFromBravo) {
+          console.log("🚀 Redirecting via fallback...");
+          redirectToBravo(token);
+        }
       } else {
-        // 🔍 Fallback: try to fetch user manually
-        const { data: user, error } = await supabase.auth.getUser(token);
-        console.log("🔍 Fallback getUser result:", user, error);
-
-        if (user) {
-          currentUser = user;
-
-          // ✅ Guard against redirect loop
-          const currentUrl = window.location.href;
-          const isReturningFromBravo = currentUrl.includes('access_token=');
-          console.log("🔍 Redirect guard check:", { hasRedirected, isReturningFromBravo });
-
-          if (!hasRedirected && !isReturningFromBravo) {
-            console.log("🚀 Redirecting via fallback...");
-            redirectToBravo(token);
-          }
-        } else {
-          console.warn("❌ Fallback failed: token invalid or expired");
-          showMessage("Token invalid or expired", 'error');
-        }
+        console.warn("❌ Fallback failed: token invalid or expired");
+        showMessage("Token invalid or expired", 'error');
       }
+    }
 
-      // ✅ Attach listener AFTER token handling
-      supabase.auth.onAuthStateChange((event, session) => {
-        console.log("🔄 Auth state change triggered:", event, session);
+    supabase.auth.onAuthStateChange((event, session) => {
+      console.log("🔄 Auth state change triggered:", event, session);
 
-        if (session && session.access_token && !oauthParams) {
-          console.log("🚀 Redirecting via auth state change...");
-          redirectToBravo(session.access_token);
-        } else {
-          console.warn("❌ Auth state change triggered but no valid token found.");
-          showMessage("Authentication incomplete. Please try logging in again.", 'error');
-        }
-      });
+      if (session && session.access_token && !oauthParams) {
+        console.log("🚀 Redirecting via auth state change...");
+        redirectToBravo(session.access_token);
+      } else {
+        console.warn("❌ Auth state change triggered but no valid token found.");
+        showMessage("Authentication incomplete. Please try logging in again.", 'error');
+      }
     });
-}
+  })
+  .catch((error) => {
+    console.error("❌ setSession failed:", error);
+  });
 
  
 // Token extraction from URL fragment e.g. access_token. This is how supabase returns tokens after OAuth login
