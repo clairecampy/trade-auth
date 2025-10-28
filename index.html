@@ -512,6 +512,10 @@ if (token) {
     redirect_uri: oauthParams?.redirect_uri || window.location.href
   })
 });
+const result = await response.json();
+console.log("🎟️ Token exchange result:", result);
+localStorage.setItem('bravo_access_token', result.access_token);
+localStorage.setItem('bravo_refresh_token', result.refresh_token);
 
         const currentUrl = window.location.href;
         const isReturningFromBravo = currentUrl.includes('from=bravo');
