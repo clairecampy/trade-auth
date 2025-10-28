@@ -497,7 +497,7 @@ if (token) {
       console.log("🔍 Fallback getUser result:", user, error);
 
       if (user) {
-        currentUser = user;
+        currentUser = user.user;
 
         const currentUrl = window.location.href;
         const isReturningFromBravo = currentUrl.includes('from=bravo');
@@ -528,7 +528,7 @@ if (token) {
   .catch((error) => {
     console.error("❌ setSession failed:", error);
   });
-
+}
  
 // Token extraction from URL fragment e.g. access_token. This is how supabase returns tokens after OAuth login
 const fragment = window.location.hash;
