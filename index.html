@@ -520,7 +520,8 @@ localStorage.setItem('bravo_access_token', result.access_token);
 localStorage.setItem('bravo_refresh_token', result.refresh_token);
 // ✅ Show success message before redirect
 showMessage("✅ You’re signed in and authorized!", 'success');
-          
+window.location.reload(); // ✅ Forces Bravo to re-read localStorage
+
         const currentUrl = window.location.href;
         const isReturningFromBravo = currentUrl.includes('from=bravo');
 const isOnTradeAuth = currentUrl.includes('clairecampy.github.io/trade-auth');
