@@ -521,7 +521,7 @@ localStorage.setItem('bravo_refresh_token', result.refresh_token);
 console.log("🎟️ Stored access token:", localStorage.getItem('bravo_access_token'));
 // ✅ Show success message before redirect
 showMessage("✅ You’re signed in and authorized!", 'success');
-window.location.reload(); // ✅ Forces Bravo to re-read localStorage
+
 
         const currentUrl = window.location.href;
         const isReturningFromBravo = currentUrl.includes('from=bravo');
