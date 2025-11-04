@@ -484,8 +484,9 @@ const token = urlParams.get('access_token');
 if (token) {
   console.log("🔍 Extracted token:", token);
 
-  // Validate token directly
-  supabase.auth.getUser(token).then(async ({ data: user, error }) => {
+  (async () => {
+    const { data: user, error } = await supabase.auth.getUser(token);
+
     if (user) {
       currentUser = user.user;
       console.log("✅ Token validated via getUser:", currentUser);
@@ -520,8 +521,9 @@ if (token) {
       console.warn("❌ Token invalid or expired");
       showMessage("Token invalid or expired", 'error');
     }
-  });
+  })();
 }
+
 
       // Listen for auth state changes
       supabase.auth.onAuthStateChange((event, session) => {
