@@ -539,12 +539,6 @@ if (token) {
         }
       });
 
-    })
-    .catch((error) => {
-      console.error("❌ setSession failed:", error);
-    });
-}
-
 // Token extraction from URL fragment (used for OAuth redirect)
 const fragment = window.location.hash;
 console.log("URL fragment:", fragment);
