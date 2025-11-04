@@ -512,19 +512,24 @@ if (token) {
 }
 
 
-    supabase.auth.onAuthStateChange((event, session) => {
+supabase.auth.onAuthStateChange((event, session) => {
   console.log("🔄 Auth state change triggered:", event, session);
 
-  if (session && session.access_token && !oauthParams) {
-    console.log("🚀 Redirecting via auth state change...");
-    redirectToBravo(session.access_token);
-  } else if (currentUser) {
-    console.log("✅ Auth state change skipped — fallback already succeeded.");
+  if (session?.access_token) {
+    currentUser = session.user;
+    localStorage.setItem('bravo_access_token', session.access_token);
+
+    if (!oauthParams) {
+      console.log("🚀 Redirecting via auth state change...");
+      redirectToBravo(session.access_token);
+    } else {
+      console.log("🔐 OAuth flow detected — skipping Bravo redirect.");
+    }
   } else {
-    console.warn("❌ Auth state change triggered but no valid token found.");
-    showMessage("Authentication incomplete. Please try logging in again.", 'error');
+    console.log("⚠️ Auth state change detected but no valid session.");
   }
 });
+
  
 // ✅ Handle Supabase GitHub OAuth redirect from URL fragment
 const fragment = window.location.hash;
