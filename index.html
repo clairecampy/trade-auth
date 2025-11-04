@@ -462,98 +462,109 @@
     </div>
 
     <script>
-        // ⚠️ REPLACE WITH YOUR SUPABASE CREDENTIALS
-        const SUPABASE_URL = 'https://hukkjktxwcceajwvnybm.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1a2tqa3R4d2NjZWFqd3ZueWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMDE1MjYsImV4cCI6MjA3NTU3NzUyNn0.koOSDJ8m3CfvF8CwN84w-AsZsmUiPJddzsnMOR0XvJE';
+       // ⚠️ REPLACE WITH YOUR SUPABASE CREDENTIALS
+const SUPABASE_URL = 'https://hukkjktxwcceajwvnybm.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1a2tqa3R4d2NjZWFqd3ZueWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMDE1MjYsImV4cCI6MjA3NTU3NzUyNn0.koOSDJ8m3CfvF8CwN84w-AsZsmUiPJddzsnMOR0XvJE';
 
-        // Initialize Supabase client
-        const supabase = window.supabase?.createClient ?
-            window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY,{
-                                           auth: {
-                                           persistSession: false,
-                                           autoRefreshToken: true
-                                           } 
-                                          }) :
-            supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY,{
-                                           auth: {
-                                           persistSession: false,
-                                           autoRefreshToken: true
-                                           } 
-                                          });
+// Initialize Supabase client
+const supabase = window.supabase?.createClient
+  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: true
+      }
+    })
+  : supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+      auth: {
+        persistSession: false,
+        autoRefreshToken: true
+      }
+    });
+
 console.log("Page loaded at:", window.location.href);
-  const urlParams = new URLSearchParams(window.location.search);
-// 1. Declare token
+
+// Extract token from query string
+const urlParams = new URLSearchParams(window.location.search);
 const token = urlParams.get('access_token');
 
-// 2. Set session or fallback to getUser()
+// Set session or fallback to getUser()
 if (token) {
-    console.log("🔍 Extracted token:", token, "Length:", token?.length);
+  console.log("🔍 Extracted token:", token, "Length:", token?.length);
+
   supabase.auth.setSession({ access_token: token, refresh_token: '' })
-  .then(async ({ data }) => {
-    if (data?.session) {
-      console.log("✅ Session restored via setSession");
-      checkAuth();
-    } else {
-      const { data: user, error } = await supabase.auth.getUser(token);
-      console.log("🔍 Fallback getUser result:", user, error);
-
-      if (user) {
-        currentUser = user.user;
-// ✅ Trigger your Edge Function here
-  await fetch('https://hukkjktxwcceajwvnybm.supabase.co/functions/v1/bravo-token', {
-  method: 'POST',
-  headers: {
-    'Content-Type': 'application/json',
-    'Authorization': `Bearer ${token}`
-  },
-  body: JSON.stringify({
-    grant_type: 'authorization_code',
-    code: token,
-    client_id: oauthParams?.client_id || 'bravo',
-    redirect_uri: oauthParams?.redirect_uri || window.location.href
-  })
-});
-
-        const currentUrl = window.location.href;
-        const isReturningFromBravo = currentUrl.includes('from=bravo');
-const isOnTradeAuth = currentUrl.includes('clairecampy.github.io/trade-auth');
-console.log("🔍 Redirect guard check:", { hasRedirected, isReturningFromBravo, isOnTradeAuth });
-
-if (!hasRedirected && !(isReturningFromBravo && isOnTradeAuth)) {
-  console.log("🚀 Redirecting via fallback...");
-  redirectToBravo(token);
-}
+    .then(async ({ data }) => {
+      if (data?.session) {
+        console.log("✅ Session restored via setSession");
+        checkAuth(); // Now safe to run
       } else {
-        console.warn("❌ Fallback failed: token invalid or expired");
-        showMessage("Token invalid or expired", 'error');
+        const { data: user, error } = await supabase.auth.getUser(token);
+        console.log("🔍 Fallback getUser result:", user, error);
+
+        if (user) {
+          currentUser = user.user;
+
+          // ✅ Trigger your Edge Function here
+          await fetch('https://hukkjktxwcceajwvnybm.supabase.co/functions/v1/bravo-token', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+              grant_type: 'authorization_code',
+              code: token,
+              client_id: oauthParams?.client_id || 'bravo',
+              redirect_uri: oauthParams?.redirect_uri || window.location.href
+            })
+          })
+          .then(res => res.json())
+          .then(data => console.log("Edge function response:", data))
+          .catch(err => console.error("Edge function error:", err));
+
+          // ✅ Redirect back to Bravo if needed
+          const currentUrl = window.location.href;
+          const isReturningFromBravo = currentUrl.includes('from=bravo');
+          const isOnTradeAuth = currentUrl.includes('clairecampy.github.io/trade-auth');
+          console.log("🔍 Redirect guard check:", { isReturningFromBravo, isOnTradeAuth });
+
+          if (!hasRedirected && !(isReturningFromBravo && isOnTradeAuth)) {
+            console.log("🚀 Redirecting via fallback...");
+            redirectToBravo(token);
+          }
+
+        } else {
+          console.warn("❌ Fallback failed: token invalid or expired");
+          showMessage("Token invalid or expired", 'error');
+        }
       }
-    }
 
-    supabase.auth.onAuthStateChange((event, session) => {
-  console.log("🔄 Auth state change triggered:", event, session);
+      // Listen for auth state changes
+      supabase.auth.onAuthStateChange((event, session) => {
+        console.log("🔄 Auth state change triggered:", event, session);
 
-  if (session && session.access_token && !oauthParams) {
-    console.log("🚀 Redirecting via auth state change...");
-    redirectToBravo(session.access_token);
-  } else if (currentUser) {
-    console.log("✅ Auth state change skipped — fallback already succeeded.");
-  } else {
-    console.warn("❌ Auth state change triggered but no valid token found.");
-    showMessage("Authentication incomplete. Please try logging in again.", 'error');
-  }
-});
+        if (session && session.access_token && !oauthParams) {
+          console.log("🚀 Redirecting via auth state change...");
+          redirectToBravo(session.access_token);
+        } else if (currentUser) {
+          console.log("✅ Auth state change skipped — fallback already succeeded.");
+        } else {
+          console.warn("❌ Auth state change triggered but no valid token found.");
+          showMessage("Authentication incomplete. Please try logging in again.", 'error');
+        }
+      });
 
-  })
-  .catch((error) => {
-    console.error("❌ setSession failed:", error);
-  });
+    })
+    .catch((error) => {
+      console.error("❌ setSession failed:", error);
+    });
 }
- 
-// Token extraction from URL fragment e.g. access_token. This is how supabase returns tokens after OAuth login
+
+// Token extraction from URL fragment (used for OAuth redirect)
 const fragment = window.location.hash;
-console.log("URL fragment:", fragment); 
+console.log("URL fragment:", fragment);
 const fragmentParams = new URLSearchParams(fragment.slice(1));
-const accessToken = fragmentParams.get('access_token') || fragmentParams.get('accesstoken');      
+const accessToken = fragmentParams.get('access_token') || fragmentParams.get('accesstoken');
+
 if (accessToken) {
   supabase.auth.setSession({
     access_token: accessToken,
