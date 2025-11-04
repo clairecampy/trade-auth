@@ -525,10 +525,6 @@ if (token) {
     showMessage("Authentication incomplete. Please try logging in again.", 'error');
   }
 });
-
-  .catch((error) => {
-    console.error("❌ setSession failed:", error);
-  });
  
 // ✅ Handle Supabase GitHub OAuth redirect from URL fragment
 const fragment = window.location.hash;
