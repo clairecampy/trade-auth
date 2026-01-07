@@ -461,488 +461,331 @@
         </div>
     </div>
 
-    <script>
-       // ⚠️ REPLACE WITH YOUR SUPABASE CREDENTIALS
-const SUPABASE_URL = 'https://hukkjktxwcceajwvnybm.supabase.co';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1a2tqa3R4d2NjZWFqd3ZueWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMDE1MjYsImV4cCI6MjA3NTU3NzUyNn0.koOSDJ8m3CfvF8CwN84w-AsZsmUiPJddzsnMOR0XvJE';
+  <script>
+  // ⚠️ Your existing Supabase URL + anon key here
+  const SUPABASE_URL = 'https://hukkjktxwcceajwvnybm.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1a2tqa3R4d2NjZWFqd3ZueWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMDE1MjYsImV4cCI6MjA3NTU3NzUyNn0.koOSDJ8m3CfvF8CwN84w-AsZsmUiPJddzsnMOR0XvJE';
 
-// Initialize Supabase client
-const supabase = window.supabase?.createClient
-  ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: false, autoRefreshToken: true }
-    })
-  : supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-      auth: { persistSession: false, autoRefreshToken: true }
+  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false, autoRefreshToken: true }
+  });
+
+  let currentTab = 'signin';
+  let oauthParams = null;
+  let currentUser = null;
+  let hasRedirected = false;
+
+  // Parse URL params
+  const urlParams = new URLSearchParams(window.location.search);
+
+  // ✅ Detect OAuth2 authorization request (when your page is acting as an auth server)
+  if (
+    urlParams.has('response_type') &&
+    urlParams.has('client_id') &&
+    urlParams.has('redirect_uri')
+  ) {
+    oauthParams = {
+      response_type: urlParams.get('response_type'),
+      client_id: urlParams.get('client_id'),
+      redirect_uri: urlParams.get('redirect_uri'),
+      scope: urlParams.get('scope') || 'read',
+      state: urlParams.get('state'),
+      client_name: urlParams.get('client_name') || 'Unknown Application'
+    };
+  }
+
+  // ✅ Helper: redirect back to Bravo with user state
+  function redirectToBravo(token, state = {}) {
+    if (hasRedirected) return;
+    if (!token || typeof token !== 'string' || token.length < 10) return;
+
+    hasRedirected = true;
+
+    try {
+      localStorage.setItem('access_token', token);
+    } catch (e) {
+      console.warn('LocalStorage failed:', e);
+    }
+
+    // Attach state flags for Bravo to route:
+    // e.g. ?access_token=...&isNewUser=true&isVerified=false
+    const params = new URLSearchParams({
+      access_token: token,
+      from: 'auth',
+      ...(state.isNewUser !== undefined && { isNewUser: String(state.isNewUser) }),
+      ...(state.isVerified !== undefined && { isVerified: String(state.isVerified) })
     });
 
-console.log("Page loaded at:", window.location.href);
+    const encodedLink = encodeURIComponent(
+      `https://clairecampy.github.io/trade-auth/?${params.toString()}`
+    );
 
-// Extract token from query string
-const urlParams = new URLSearchParams(window.location.search);
-const token = urlParams.get('access_token');
+    const finalRedirect =
+      `https://bravostudio.dynalinks.app/?link=${encodedLink}` +
+      `&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer` +
+      `&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3`;
 
-if (token) {
-  console.log("🔍 Extracted token:", token);
+    window.location.href = finalRedirect;
+  }
 
-  (async () => {
-    const { data: user, error } = await supabase.auth.getUser(token);
+  // ✅ Helper: fetch trade profile + derive state
+  async function getUserState(user) {
+    // Assumes trade_profiles table with user_id FK to auth.users.id
+    const { data: profile, error } = await supabase
+      .from('trade_profiles')
+      .select('verified')
+      .eq('user_id', user.id)
+      .maybeSingle();
 
-    if (user) {
-      currentUser = user.user;
-      console.log("✅ Token validated via getUser:", currentUser);
+    if (error) {
+      console.warn('Error fetching trade profile:', error);
+    }
 
-      // 🔥 Trigger your edge function
-      await fetch('https://hukkjktxwcceajwvnybm.supabase.co/functions/v1/bravo-token', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          grant_type: 'authorization_code',
-          code: token,
-          client_id: oauthParams?.client_id || 'bravo',
-          redirect_uri: oauthParams?.redirect_uri || window.location.href
-        })
-      })
-      .then(res => res.json())
-      .then(data => console.log("Edge function response:", data))
-      .catch(err => console.error("Edge function error:", err));
+    const hasProfile = !!profile;
+    const isVerified = !!profile?.verified;
 
-      // 🚀 Redirect to Bravo if needed
-      const currentUrl = window.location.href;
-      const isReturningFromBravo = currentUrl.includes('from=bravo');
-      const isOnTradeAuth = currentUrl.includes('clairecampy.github.io/trade-auth');
-      if (!hasRedirected && !(isReturningFromBravo && isOnTradeAuth)) {
-        redirectToBravo(token);
+    return {
+      hasProfile,
+      isVerified,
+      isNewUser: !hasProfile
+    };
+  }
+
+  // ✅ Handle email/password sign-in
+  document.getElementById('signin-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById('signin-email').value;
+    const password = document.getElementById('signin-password').value;
+    const submitBtn = e.target.querySelector('.btn');
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Signing in...';
+
+    try {
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) throw error;
+
+      const session = data.session;
+      const user = data.user;
+      currentUser = user;
+
+      if (!session || !session.access_token) {
+        showMessage('No session returned from sign-in', 'error');
+        return;
       }
 
-    } else {
-      console.warn("❌ Token invalid or expired");
-      showMessage("Token invalid or expired", 'error');
+      const token = session.access_token;
+
+      // If this is part of an OAuth2 auth-server flow
+      if (oauthParams) {
+        await authorizeApplication(session);
+        return;
+      }
+
+      // Normal app flow: check trade profile
+      const state = await getUserState(user);
+      redirectToBravo(token, {
+        isNewUser: state.isNewUser,
+        isVerified: state.isVerified
+      });
+    } catch (err) {
+      showMessage(err.message, 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sign In';
     }
-  })();
-}
+  });
 
+  // ✅ Handle email/password sign-up
+  document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
 
-      // Listen for auth state changes
-      supabase.auth.onAuthStateChange((event, session) => {
-        console.log("🔄 Auth state change triggered:", event, session);
+    const email = document.getElementById('signup-email').value;
+    const password = document.getElementById('signup-password').value;
+    const submitBtn = e.target.querySelector('.btn');
 
-        if (session && session.access_token && !oauthParams) {
-          console.log("🚀 Redirecting via auth state change...");
-          redirectToBravo(session.access_token);
-        } else if (currentUser) {
-          console.log("✅ Auth state change skipped — fallback already succeeded.");
-        } else {
-          console.warn("❌ Auth state change triggered but no valid token found.");
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Creating account...';
+
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          redirectTo:
+            'https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F' +
+            '&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer' +
+            '&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3'
         }
       });
 
-// Token extraction from URL fragment (used for OAuth redirect)
-const fragment = window.location.hash;
-console.log("URL fragment:", fragment);
-const fragmentParams = new URLSearchParams(fragment.slice(1));
-const accessToken = fragmentParams.get('access_token') || fragmentParams.get('accesstoken');
+      if (error) throw error;
 
-if (accessToken) {
-  supabase.auth.setSession({
-    access_token: accessToken,
-    refresh_token: fragmentParams.get('refresh_token')
-  }).then(() => {
-    checkAuth(); // ✅ Re-run session check after setting token
-  });
-}
+      const user = data.user;
+      const session = data.session;
+      currentUser = user;
 
-        // ✅ Email/password login function which redirects to bravo if successful. 
-async function signInWithEmail(email, password) {
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-
-  if (error) {
-    showMessage(error.message, 'error');
-    return;
-  }
-
- if (data.session && data.session.access_token) {
-  const token = data.session.access_token;
-  redirectToBravo(token);
-}
-}
-        let currentTab = 'signin';
-        let oauthParams = null;
-        let currentUser = null;
-
- // ✅ Clean redirect helper for Bravo Vision. This prevents multiple redirects and sends the token to Bravo, and stores it in localstorage which is fine for bravo to access. 
-let hasRedirected = false; // ✅ Declare this globally
-
-function redirectToBravo(token) {
-  // ✅ Prevent redirect if already done
-  if (hasRedirected) return;
-
-  // ✅ Prevent redirect if token is invalid
-  if (!token || typeof token !== 'string' || token.length < 10) return;
-
-  // ✅ Prevent redirect loop: if already on a URL with access_token, don’t redirect again
-  const currentUrl = window.location.href;
-  const isReturningFromBravo = currentUrl.includes('from=bravo');
-const isOnTradeAuth = currentUrl.includes('clairecampy.github.io/trade-auth');
-
-if (hasRedirected || (isReturningFromBravo && isOnTradeAuth)) {
-  console.log("🔁 Redirect blocked: already returned from Bravo.");
-  return;
-}
-
-
-  hasRedirected = true;
-
-  try {
-    localStorage.setItem('access_token', token); // ✅ Safe to store
-  } catch (e) {
-    console.warn("LocalStorage failed:", e);
-  }
-
-  const encodedLink = encodeURIComponent(`https://clairecampy.github.io/trade-auth/?access_token=${token}&from=bravo`);
-  const finalRedirect = `https://bravostudio.dynalinks.app/?link=${encodedLink}&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3`;
-
-  window.location.href = finalRedirect;
-}
-
-        // Check for OAuth2 authorization request parameters
-if (urlParams.has('response_type') && urlParams.has('client_id') && urlParams.has('redirect_uri')) {
-  oauthParams = {
-    response_type: urlParams.get('response_type'),
-    client_id: urlParams.get('client_id'),
-    redirect_uri: urlParams.get('redirect_uri'),
-    scope: urlParams.get('scope') || 'read',
-    state: urlParams.get('state'),
-    client_name: urlParams.get('client_name') || 'Unknown Application'
-  };
-  setupOAuthFlow();
-}
-
-        // Check for existing session on page load
-checkAuth();
-
-function setupOAuthFlow() {
-    // OAuth parameters are stored but no UI changes needed
-    // The form will handle OAuth flow automatically after login
-}
-//Core logic. If a session exists and it's not part of an OAuth2 flow then redirect to Bravo. If it is part of OAuth2 then call authorizeapplication() otherwise show login UI. 
-async function checkAuth() {
-    const { data: { session } } = await supabase.auth.getSession();
-    console.log("Session detected:", session);
-    console.log("OAuth params:", oauthParams);
-    if (session) {
-        currentUser = session.user;
-
-        // ✅ NEW: Redirect to Bravo with token if not part of OAuth flow
-        const token = session.access_token;
-        if (token && !oauthParams) {
-            console.log("Triggering redirectToBravo from checkAuth");
-            redirectToBravo(token);
-            return; // prevent showing welcome screen
-        }
-
-        // ✅ Existing logic for OAuth flow
-        if (oauthParams) {
-            // Directly authorize and redirect for OAuth flow
-            authorizeApplication(session);
-        } else {
-            showUserSection(session.user);
-        }
-    } else {
-        showAuthSection();
-    }
-}
-        function switchTab(tab) {
-            currentTab = tab;
-
-            // Update tab buttons
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-
-            // Show/hide forms
-            const signinForm = document.getElementById('signin-form');
-            const signupForm = document.getElementById('signup-form');
-
-            if (tab === 'signin') {
-                signinForm.classList.remove('hidden');
-                signupForm.classList.add('hidden');
-            } else {
-                signinForm.classList.add('hidden');
-                signupForm.classList.remove('hidden');
-            }
-
-            clearMessage();
-        }
-
-        // Handle sign in form
-        document.getElementById('signin-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
-
-            const email = document.getElementById('signin-email').value;
-            const password = document.getElementById('signin-password').value;
-            const submitBtn = e.target.querySelector('.btn');
-
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Signing in...';
-
-            try {
-                const { data, error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password
-                });
-
-                if (error) throw error;
-
-currentUser = data.user;
-
-if (oauthParams) {
-  // Directly authorize and redirect for OAuth flow
-  authorizeApplication(data.session);
-} else {
-  const token = data.session?.access_token;
-  if (token) {
-    redirectToBravo(token);
-    return;
-  }
-  showMessage('Successfully signed in!', 'success');
-  showUserSection(data.user);
-}
-
-            } catch (error) {
-                showMessage(error.message, 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Sign In';
-            }
-        });
-
-        // Handle sign up form
-    document.getElementById('signup-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-
-  const email = document.getElementById('signup-email').value;
-  const password = document.getElementById('signup-password').value;
-  const submitBtn = e.target.querySelector('.btn');
-
-  submitBtn.disabled = true;
-  submitBtn.textContent = 'Creating account...';
-
-  try {
-    const { data, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        redirectTo: 'https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3'
+      if (user && !session) {
+        // Email confirmation flow
+        showMessage('Please check your email to confirm your account!', 'success');
+        return;
       }
-    });
-                if (error) throw error;
 
-                if (data.user && !data.session) {
-                    showMessage('Please check your email to confirm your account!', 'success');
-                } else if (data.session) {
-  currentUser = data.user;
+      if (!session || !session.access_token) {
+        showMessage('No session returned from sign-up', 'error');
+        return;
+      }
 
-  if (oauthParams) {
-    // Directly authorize and redirect for OAuth flow
-    authorizeApplication(data.session);
-  } else {
-    const token = data.session.access_token;
-    if (token) {
-      redirectToBravo(token);
-      return;
+      const token = session.access_token;
+
+      // Ensure a trade profile row exists (unverified by default)
+      await supabase.from('trade_profiles').upsert(
+        {
+          user_id: user.id,
+          verified: false
+        },
+        { onConflict: 'user_id' }
+      );
+
+      if (oauthParams) {
+        await authorizeApplication(session);
+        return;
+      }
+
+      // New user → always onboarding
+      redirectToBravo(token, {
+        isNewUser: true,
+        isVerified: false
+      });
+    } catch (err) {
+      showMessage(err.message, 'error');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sign Up';
     }
-    showMessage('Account created successfully!', 'success');
-    showUserSection(data.user);
-  }
-}
-
-
-            } catch (error) {
-                showMessage(error.message, 'error');
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.textContent = 'Sign Up';
-            }
-        });
-
-
- function signInWithGitHub() {
-  console.log("GitHub sign-in triggered");
-
-  supabase.auth.signInWithOAuth({
-    provider: 'github',
-    options: {
-      redirectTo: 'https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3'
-    }
-  }).then(({ data, error }) => {
-    if (error) {
-      showMessage(error.message, 'error');
-      return;
-    }
-
-    console.log("Redirect URL from Supabase:", data?.url);
-
-    if (data?.url) {
-      window.location.href = data.url;
-    } else {
-      console.warn("No redirect URL returned from Supabase.");
-    }
-  }).catch((err) => {
-    console.error("OAuth initiation failed:", err);
-    showMessage("OAuth initiation failed", 'error');
   });
-} // ✅ ← This was missing
 
-window.signInWithGitHub = signInWithGitHub;
-
-
-
-        // Show authorization section for OAuth2 flow
-        function showAuthorizationSection() {
-            document.getElementById('auth-section').style.display = 'none';
-            document.getElementById('user-section').style.display = 'none';
-            document.getElementById('authorization-section').style.display = 'block';
-
-            // Update client name
-            document.getElementById('auth-client-name').textContent = oauthParams.client_name;
-
-            // Populate scopes
-            const scopeList = document.getElementById('scope-list');
-            const scopes = oauthParams.scope.split(' ');
-
-            scopeList.innerHTML = '';
-            scopes.forEach(scope => {
-                const scopeItem = document.createElement('div');
-                scopeItem.className = 'scope-item';
-                scopeItem.innerHTML = `
-                    <svg class="scope-icon" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"></path>
-                    </svg>
-                    <span>${getScopeDescription(scope)}</span>
-                `;
-                scopeList.appendChild(scopeItem);
-            });
+  // ✅ GitHub OAuth sign-in / sign-up
+  function signInWithGitHub() {
+    supabase.auth
+      .signInWithOAuth({
+        provider: 'github',
+        options: {
+          redirectTo:
+            'https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F' +
+            '&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer' +
+            '&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3'
         }
-
-        // Get human-readable scope descriptions
-        function getScopeDescription(scope) {
-            const descriptions = {
-                'read': 'Read your basic profile information',
-                'write': 'Modify your account data',
-                'email': 'Access your email address',
-                'profile': 'Access your profile information',
-                'openid': 'Verify your identity'
-            };
-            return descriptions[scope] || `Access ${scope} permissions`;
+      })
+      .then(({ data, error }) => {
+        if (error) {
+          showMessage(error.message, 'error');
+          return;
         }
-
-        // Generate authorization code (in a real implementation, this would be more secure)
-        function generateAuthorizationCode(userId) {
-            // In production, this should be a cryptographically secure random string
-            // stored in your database with an expiration time
-            const timestamp = Date.now();
-            const randomString = Math.random().toString(36).substring(2, 15);
-            return btoa(`${userId}:${timestamp}:${randomString}`);
+        if (data?.url) {
+          window.location.href = data.url;
+        } else {
+          showMessage('No redirect URL returned from Supabase.', 'error');
         }
+      })
+      .catch((err) => {
+        console.error('OAuth initiation failed:', err);
+        showMessage('OAuth initiation failed', 'error');
+      });
+  }
+  window.signInWithGitHub = signInWithGitHub;
 
-        // Authorize the application automatically
-        async function authorizeApplication(session) {
-            if (!currentUser || !oauthParams) {
-                showMessage('Invalid authorization request', 'error');
-                return;
-            }
+  // ✅ Handle OAuth redirect fragment (access_token in hash)
+  (async function handleOAuthFragment() {
+    const fragment = window.location.hash;
+    const fragmentParams = new URLSearchParams(fragment.slice(1));
+    const accessToken = fragmentParams.get('access_token');
+    const refreshToken = fragmentParams.get('refresh_token');
 
-            try {
-                // Generate authorization code
-                const code = session.access_token;
+    if (!accessToken) return;
 
-                // Build redirect URL
-                const redirectUrl = new URL(oauthParams.redirect_uri);
-                redirectUrl.searchParams.set('code', code);
+    const { data, error } = await supabase.auth.setSession({
+      access_token: accessToken,
+      refresh_token: refreshToken
+    });
 
-                if (oauthParams.state) {
-                    redirectUrl.searchParams.set('state', oauthParams.state);
-                }
+    if (error) {
+      console.error('Error setting session from fragment:', error);
+      return;
+    }
 
-                // Redirect immediately
-                window.location.href = redirectUrl.toString();
+    const session = data.session;
+    const user = data.user;
+    currentUser = user;
 
-            } catch (error) {
-                showMessage('Authorization failed: ' + error.message, 'error');
-            }
-        }
+    if (!session || !session.access_token) return;
 
-        // Deny authorization
-        function denyAuthorization() {
-            if (!oauthParams) return;
+    const token = session.access_token;
 
-            // Build error redirect URL
-            const redirectUrl = new URL(oauthParams.redirect_uri);
-            redirectUrl.searchParams.set('error', 'access_denied');
-            redirectUrl.searchParams.set('error_description', 'User denied the request');
+    if (oauthParams) {
+      await authorizeApplication(session);
+      return;
+    }
 
-            if (oauthParams.state) {
-                redirectUrl.searchParams.set('state', oauthParams.state);
-            }
+    // GitHub flow: treat as sign-in/sign-up, check profile
+    const state = await getUserState(user);
+    redirectToBravo(token, {
+      isNewUser: state.isNewUser,
+      isVerified: state.isVerified
+    });
+  })();
 
-            showMessage('Authorization denied. Redirecting...', 'error');
+  // ✅ Minimal UI helpers (reuse your existing ones)
+  function showAuthSection() {
+    document.getElementById('auth-section').style.display = 'block';
+    document.getElementById('user-section').style.display = 'none';
+    document.getElementById('authorization-section').style.display = 'none';
+  }
 
-            setTimeout(() => {
-                window.location.href = redirectUrl.toString();
-            }, 1500);
-        }
+  function showUserSection(user) {
+    document.getElementById('auth-section').style.display = 'none';
+    document.getElementById('authorization-section').style.display = 'none';
+    document.getElementById('user-section').style.display = 'block';
+    document.getElementById('user-email').textContent = user.email;
+  }
 
-        // Sign out
-        async function signOut() {
-            try {
-                const { error } = await supabase.auth.signOut();
-                if (error) throw error;
+  function showMessage(text, type) {
+    const container = document.getElementById('message-container');
+    container.innerHTML = `<div class="message ${type}">${text}</div>`;
+    if (type === 'success') {
+      setTimeout(clearMessage, 5000);
+    }
+  }
 
-                currentUser = null;
-                showAuthSection();
-                showMessage('Signed out successfully!', 'success');
+  function clearMessage() {
+    document.getElementById('message-container').innerHTML = '';
+  }
 
-            } catch (error) {
-                showMessage(error.message, 'error');
-            }
-        }
+  // ✅ OAuth2 auth-server helper (kept from your original)
+  async function authorizeApplication(session) {
+    if (!currentUser || !oauthParams) {
+      showMessage('Invalid authorization request', 'error');
+      return;
+    }
 
-        // Show/hide sections
-        function showAuthSection() {
-            document.getElementById('auth-section').style.display = 'block';
-            document.getElementById('user-section').style.display = 'none';
-            document.getElementById('authorization-section').style.display = 'none';
-        }
+    try {
+      const code = session.access_token;
+      const redirectUrl = new URL(oauthParams.redirect_uri);
+      redirectUrl.searchParams.set('code', code);
+      if (oauthParams.state) {
+        redirectUrl.searchParams.set('state', oauthParams.state);
+      }
+      window.location.href = redirectUrl.toString();
+    } catch (error) {
+      showMessage('Authorization failed: ' + error.message, 'error');
+    }
+  }
 
-        function showUserSection(user) {
-            document.getElementById('auth-section').style.display = 'none';
-            document.getElementById('authorization-section').style.display = 'none';
-            document.getElementById('user-section').style.display = 'block';
-            document.getElementById('user-email').textContent = user.email;
-        }
+  // ✅ Initial UI state
+  showAuthSection();
+</script>
 
-        // Message handling
-        function showMessage(text, type) {
-            const container = document.getElementById('message-container');
-            container.innerHTML = `<div class="message ${type}">${text}</div>`;
-
-            // Auto-hide success messages after 5 seconds
-            if (type === 'success') {
-                setTimeout(clearMessage, 5000);
-            }
-        }
-
-        function clearMessage() {
-            document.getElementById('message-container').innerHTML = '';
-        }
-
-
-    </script>
 </body>
 
 </html>
