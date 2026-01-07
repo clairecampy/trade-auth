@@ -409,10 +409,6 @@
                 </form>
             </div>
 
-            <div class="divider">
-                <span>or continue with</span>     
-        </div>
-
         <!-- Authorization Section (shown after login for OAuth2 flow) -->
         <div id="authorization-section" class="authorization-section" style="display: none;">
             <h2>Authorize Application</h2>
@@ -673,77 +669,7 @@ function switchTab(tab) {
       submitBtn.textContent = 'Sign Up';
     }
   });
-
-  // ✅ GitHub OAuth sign-in / sign-up
-  function signInWithGitHub() {
-    supabase.auth
-      .signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo:
-            'https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F' +
-            '&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer' +
-            '&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3'
-        }
-      })
-      .then(({ data, error }) => {
-        if (error) {
-          showMessage(error.message, 'error');
-          return;
-        }
-        if (data?.url) {
-          window.location.href = data.url;
-        } else {
-          showMessage('No redirect URL returned from Supabase.', 'error');
-        }
-      })
-      .catch((err) => {
-        console.error('OAuth initiation failed:', err);
-        showMessage('OAuth initiation failed', 'error');
-      });
-  }
-  window.signInWithGitHub = signInWithGitHub;
-
-  // ✅ Handle OAuth redirect fragment (access_token in hash)
-  (async function handleOAuthFragment() {
-    const fragment = window.location.hash;
-    const fragmentParams = new URLSearchParams(fragment.slice(1));
-    const accessToken = fragmentParams.get('access_token');
-    const refreshToken = fragmentParams.get('refresh_token');
-
-    if (!accessToken) return;
-
-    const { data, error } = await supabase.auth.setSession({
-      access_token: accessToken,
-      refresh_token: refreshToken
-    });
-
-    if (error) {
-      console.error('Error setting session from fragment:', error);
-      return;
-    }
-
-    const session = data.session;
-    const user = data.user;
-    currentUser = user;
-
-    if (!session || !session.access_token) return;
-
-    const token = session.access_token;
-
-    if (oauthParams) {
-      await authorizeApplication(session);
-      return;
-    }
-
-    // GitHub flow: treat as sign-in/sign-up, check profile
-    const state = await getUserState(user);
-    redirectToBravo(token, {
-      isNewUser: state.isNewUser,
-      isVerified: state.isVerified
-    });
-  })();
-
+      
   // ✅ Minimal UI helpers (reuse your existing ones)
   function showAuthSection() {
     document.getElementById('auth-section').style.display = 'block';
