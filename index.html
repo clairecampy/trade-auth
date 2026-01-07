@@ -113,19 +113,17 @@
             overflow: hidden;
         }
 
-        .form {
-            transition: transform 0.3s ease, opacity 0.3s ease;
-        }
+       .form {
+    display: block;
+    position: static;
+    opacity: 1;
+    transform: none;
+}
 
   .form.hidden {
-            transform: translateX(20px);
-            opacity: 0;
-            pointer-events: none;
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-        }
+    display: none !important;
+}
+
         .form-group {
             margin-bottom: 25px;
         }
