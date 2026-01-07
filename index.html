@@ -451,30 +451,7 @@ let oauthParams = null;
 let currentUser = null;
 let hasRedirected = false;
 
-// ⭐ ADD THIS FUNCTION HERE
-function switchTab(tab) {
-  // Update tab button styles
-  document.querySelectorAll('.tab').forEach(t => {
-    t.classList.toggle('active', t.textContent.trim() === (tab === 'signin' ? 'Sign In' : 'Sign Up'));
-  });
 
-  // Show/hide forms
-  const signinForm = document.getElementById('signin-form');
-  const signupForm = document.getElementById('signup-form');
-
-  if (tab === 'signin') {
-    signinForm.classList.remove('hidden');
-    signupForm.classList.add('hidden');
-  } else {
-    signinForm.classList.add('hidden');
-    signupForm.classList.remove('hidden');
-  }
-
-  // Clear any messages
-  if (typeof clearMessage === 'function') {
-    clearMessage();
-  }
-}
 
   // Parse URL params
   const urlParams = new URLSearchParams(window.location.search);
@@ -552,6 +529,27 @@ function switchTab(tab) {
     };
   }
 
+        function switchTab(tab) {
+            currentTab = tab;
+
+            // Update tab buttons
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            event.target.classList.add('active');
+
+            // Show/hide forms
+            const signinForm = document.getElementById('signin-form');
+            const signupForm = document.getElementById('signup-form');
+
+            if (tab === 'signin') {
+                signinForm.classList.remove('hidden');
+                signupForm.classList.add('hidden');
+            } else {
+                signinForm.classList.add('hidden');
+                signupForm.classList.remove('hidden');
+            }
+
+            clearMessage();
+        }
   // ✅ Handle email/password sign-in
   document.getElementById('signin-form').addEventListener('submit', async (e) => {
     e.preventDefault();
