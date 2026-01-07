@@ -1,20 +1,14 @@
-
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Supabase OAuth2 Authorization Server</title>
+    <title>Trade Auth</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
 
-        
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
@@ -29,135 +23,61 @@
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
             border-radius: 24px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-            padding: 50px 40px;
+            padding: 40px;
             width: 100%;
             max-width: 420px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
-        .logo {
-            text-align: center;
-            margin-bottom: 40px;
-        }
-
+        .logo { text-align: center; margin-bottom: 30px; }
         .logo h1 {
-            color: #333;
-            font-size: 2.5rem;
-            font-weight: 700;
-            margin-bottom: 8px;
+            font-size: 2.2rem;
             background: linear-gradient(135deg, #667eea, #764ba2);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .logo p {
-            color: #666;
-            font-size: 1rem;
-        }
-
-        .oauth-info {
-            background: #f8f9fa;
-            border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 30px;
-            border-left: 4px solid #667eea;
-        }
-
-        .oauth-info h3 {
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
-
-        .oauth-info p {
-            color: #666;
-            font-size: 0.9rem;
-            margin-bottom: 5px;
-        }
-
-        .oauth-info .app-name {
-            font-weight: 600;
-            color: #667eea;
         }
 
         .tab-container {
             display: flex;
-            margin-bottom: 30px;
             background: #f8f9fa;
             border-radius: 12px;
             padding: 4px;
+            margin-bottom: 25px;
         }
 
         .tab {
             flex: 1;
-            padding: 12px 20px;
-            text-align: center;
-            background: transparent;
+            padding: 12px;
             border: none;
-            border-radius: 8px;
+            background: transparent;
             cursor: pointer;
+            border-radius: 8px;
             font-weight: 500;
             color: #666;
-            transition: all 0.3s ease;
         }
 
         .tab.active {
             background: white;
             color: #667eea;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
 
-        .form-container {
-            position: relative;
-            overflow: hidden;
-        }
+        .form { display: block; }
+        .form.hidden { display: none !important; }
 
-       .form {
-    display: block;
-    position: static;
-    opacity: 1;
-    transform: none;
-}
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 6px; color: #555; }
 
-  .form.hidden {
-    display: none !important;
-}
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        label {
-            display: block;
-            margin-bottom: 8px;
-            color: #555;
-            font-weight: 500;
-            font-size: 0.95rem;
-        }
-
-        input[type="email"],
-        input[type="password"] {
+        input[type="email"], input[type="password"] {
             width: 100%;
-            padding: 16px 20px;
+            padding: 14px;
             border: 2px solid #e9ecef;
-            border-radius: 12px;
+            border-radius: 10px;
             font-size: 1rem;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        input[type="email"]:focus,
-        input[type="password"]:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
         }
 
         .btn {
             width: 100%;
-            padding: 16px;
+            padding: 14px;
             background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
@@ -165,557 +85,168 @@
             font-size: 1rem;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 20px;
-        }
-
-        .btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn:active {
-            transform: translateY(0);
-        }
-
-        .btn:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn.authorize {
-            background: linear-gradient(135deg, #28a745, #20c997);
-        }
-
-        .btn.authorize:hover {
-            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
-        }
-
-        .btn.deny {
-            background: linear-gradient(135deg, #dc3545, #e83e8c);
             margin-top: 10px;
         }
 
-        .btn.deny:hover {
-            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.3);
-        }
-
-        .divider {
-            display: flex;
-            align-items: center;
-            margin: 30px 0;
-            color: #999;
-            font-size: 0.9rem;
-        }
-
-        .divider::before,
-        .divider::after {
-            content: '';
-            flex: 1;
-            height: 1px;
-            background: #e9ecef;
-        }
-
-        .divider span {
-            margin: 0 15px;
-        }
-
-        .social-btn {
-            width: 100%;
-            padding: 16px;
-            background: white;
-            color: #333;
-            border: 2px solid #e9ecef;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-
-        .social-btn:hover {
-            border-color: #667eea;
-            background: #f8f9ff;
-        }
-
         .message {
-            padding: 16px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            font-size: 0.95rem;
-            text-align: center;
-        }
-
-        .message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-
-        .message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f1b0b7;
-        }
-
-        .authorization-section {
-            text-align: center;
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 16px;
-            margin-bottom: 20px;
-        }
-
-        .authorization-section h2 {
-            color: #333;
+            padding: 14px;
+            border-radius: 10px;
             margin-bottom: 15px;
-        }
-
-        .authorization-section p {
-            color: #666;
-            margin-bottom: 25px;
-            line-height: 1.5;
-        }
-
-        .scopes {
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            margin: 20px 0;
-            text-align: left;
-        }
-
-        .scopes h4 {
-            color: #333;
-            margin-bottom: 15px;
-            font-size: 1rem;
-        }
-
-        .scope-item {
-            display: flex;
-            align-items: center;
-            margin-bottom: 10px;
-            padding: 8px 0;
-            border-bottom: 1px solid #f0f0f0;
-        }
-
-        .scope-item:last-child {
-            border-bottom: none;
-        }
-
-        .scope-icon {
-            width: 20px;
-            height: 20px;
-            margin-right: 12px;
-            color: #667eea;
-        }
-
-        .user-info {
             text-align: center;
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 16px;
-            margin-bottom: 20px;
         }
 
-        .user-info h2 {
-            color: #333;
-            margin-bottom: 10px;
-        }
-
-        .user-info p {
-            color: #666;
-            margin-bottom: 20px;
-        }
-
-        .logout-btn {
-            background: #dc3545;
-            color: white;
-            border: none;
-            padding: 12px 24px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .logout-btn:hover {
-            background: #c82333;
-            transform: translateY(-1px);
-        }
-
-        @media (max-width: 480px) {
-            .login-container {
-                padding: 30px 25px;
-                margin: 10px;
-            }
-
-            .logo h1 {
-                font-size: 2rem;
-            }
-        }
+        .message.success { background: #d4edda; color: #155724; }
+        .message.error { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 
 <body>
-    <div class="login-container">
-        <div class="logo">
-            <h1>Welcome</h1>
-            <p>Sign in to your account</p>
-        </div>
+<div class="login-container">
 
-        <div id="auth-section">
-            <div class="tab-container">
-                <button class="tab active" onclick="switchTab('signin')">Sign In</button>
-                <button class="tab" onclick="switchTab('signup')">Sign Up</button>
-            </div>
-
-            <div id="message-container"></div>
-
-            <div class="form-container">
-                <!-- Sign In Form -->
-                <form id="signin-form" class="form">
-                    <div class="form-group">
-                        <label for="signin-email">Email</label>
-                        <input type="email" id="signin-email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signin-password">Password</label>
-                        <input type="password" id="signin-password" required>
-                    </div>
-                    <button type="submit" class="btn">Sign In</button>
-                </form>
-
-                <!-- Sign Up Form -->
-                <form id="signup-form" class="form hidden">
-                    <div class="form-group">
-                        <label for="signup-email">Email</label>
-                        <input type="email" id="signup-email" required>
-                    </div>
-                    <div class="form-group">
-                        <label for="signup-password">Password</label>
-                        <input type="password" id="signup-password" required>
-                    </div>
-                    <button type="submit" class="btn">Sign Up</button>
-                </form>
-            </div>
-
-        <!-- Authorization Section (shown after login for OAuth2 flow) -->
-        <div id="authorization-section" class="authorization-section" style="display: none;">
-            <h2>Authorize Application</h2>
-            <p><span class="app-name" id="auth-client-name">Application</span> is requesting access to your account with
-                the following permissions:</p>
-
-            <div class="scopes">
-                <h4>Requested Permissions:</h4>
-                <div id="scope-list">
-                    <!-- Scopes will be populated dynamically -->
-                </div>
-            </div>
-
-            <p style="font-size: 0.9rem; color: #666; margin-top: 15px;">
-                By clicking "Authorize", you allow this application to access your account according to their
-                <a href="#" style="color: #667eea;">Terms of Service</a> and
-                <a href="#" style="color: #667eea;">Privacy Policy</a>.
-            </p>
-
-            <button class="btn authorize" onclick="authorizeApplication()">Authorize Application</button>
-            <button class="btn deny" onclick="denyAuthorization()">Deny Access</button>
-        </div>
-
-        <!-- User Info Section (for non-OAuth flow) -->
-        <div id="user-section" class="user-info" style="display: none;">
-            <h2>Welcome!</h2>
-            <p id="user-email"></p>
-            <button class="logout-btn" onclick="signOut()">Sign Out</button>
-        </div>
+    <div class="logo">
+        <h1>Welcome</h1>
+        <p>Sign in to your account</p>
     </div>
 
-  <script>
-  // ⚠️ Your existing Supabase URL + anon key here
-  const SUPABASE_URL = 'https://hukkjktxwcceajwvnybm.supabase.co';
-  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1a2tqa3R4d2NjZWFqd3ZueWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMDE1MjYsImV4cCI6MjA3NTU3NzUyNn0.koOSDJ8m3CfvF8CwN84w-AsZsmUiPJddzsnMOR0XvJE';
+    <div class="tab-container">
+        <button class="tab active" onclick="switchTab('signin')">Sign In</button>
+        <button class="tab" onclick="switchTab('signup')">Sign Up</button>
+    </div>
 
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    auth: { persistSession: false, autoRefreshToken: true }
-  });
+    <div id="message-container"></div>
 
-let currentTab = 'signin';
-let oauthParams = null;
-let currentUser = null;
-let hasRedirected = false;
+    <form id="signin-form" class="form">
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="signin-email" required>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="signin-password" required>
+        </div>
+        <button class="btn" type="submit">Sign In</button>
+    </form>
 
+    <form id="signup-form" class="form hidden">
+        <div class="form-group">
+            <label>Email</label>
+            <input type="email" id="signup-email" required>
+        </div>
+        <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="signup-password" required>
+        </div>
+        <button class="btn" type="submit">Sign Up</button>
+    </form>
 
+</div>
 
-  // Parse URL params
-  const urlParams = new URLSearchParams(window.location.search);
+<script>
+/* -----------------------------
+   Supabase Setup
+------------------------------ */
+const SUPABASE_URL = "https://hukkjktxwcceajwvnybm.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imh1a2tqa3R4d2NjZWFqd3ZueWJtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjAwMDE1MjYsImV4cCI6MjA3NTU3NzUyNn0.koOSDJ8m3CfvF8CwN84w-AsZsmUiPJddzsnMOR0XvJE";
 
-  // ✅ Detect OAuth2 authorization request (when your page is acting as an auth server)
-  if (
-    urlParams.has('response_type') &&
-    urlParams.has('client_id') &&
-    urlParams.has('redirect_uri')
-  ) {
-    oauthParams = {
-      response_type: urlParams.get('response_type'),
-      client_id: urlParams.get('client_id'),
-      redirect_uri: urlParams.get('redirect_uri'),
-      scope: urlParams.get('scope') || 'read',
-      state: urlParams.get('state'),
-      client_name: urlParams.get('client_name') || 'Unknown Application'
-    };
-  }
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-  // ✅ Helper: redirect back to Bravo with user state
-  function redirectToBravo(token, state = {}) {
-    if (hasRedirected) return;
-    if (!token || typeof token !== 'string' || token.length < 10) return;
+/* -----------------------------
+   UI Helpers
+------------------------------ */
+function showMessage(text, type) {
+    const box = document.getElementById("message-container");
+    box.innerHTML = `<div class="message ${type}">${text}</div>`;
+}
 
-    hasRedirected = true;
+function clearMessage() {
+    document.getElementById("message-container").innerHTML = "";
+}
 
-    try {
-      localStorage.setItem('access_token', token);
-    } catch (e) {
-      console.warn('LocalStorage failed:', e);
-    }
-
-    // Attach state flags for Bravo to route:
-    // e.g. ?access_token=...&isNewUser=true&isVerified=false
-    const params = new URLSearchParams({
-      access_token: token,
-      from: 'auth',
-      ...(state.isNewUser !== undefined && { isNewUser: String(state.isNewUser) }),
-      ...(state.isVerified !== undefined && { isVerified: String(state.isVerified) })
+function switchTab(tab) {
+    document.querySelectorAll(".tab").forEach(btn => {
+        btn.classList.toggle("active", btn.textContent.trim() === (tab === "signin" ? "Sign In" : "Sign Up"));
     });
 
-    const encodedLink = encodeURIComponent(
-      `https://clairecampy.github.io/trade-auth/?${params.toString()}`
-    );
+    document.getElementById("signin-form").classList.toggle("hidden", tab !== "signin");
+    document.getElementById("signup-form").classList.toggle("hidden", tab !== "signup");
 
-    const finalRedirect =
-      `https://bravostudio.dynalinks.app/?link=${encodedLink}` +
-      `&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer` +
-      `&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3`;
+    clearMessage();
+}
 
-    window.location.href = finalRedirect;
-  }
-
-  // ✅ Helper: fetch trade profile + derive state
-  async function getUserState(user) {
-    // Assumes trade_profiles table with user_id FK to auth.users.id
-    const { data: profile, error } = await supabase
-      .from('trade_profiles')
-      .select('verified')
-      .eq('user_id', user.id)
-      .maybeSingle();
-
-    if (error) {
-      console.warn('Error fetching trade profile:', error);
-    }
-
-    const hasProfile = !!profile;
-    const isVerified = !!profile?.verified;
+/* -----------------------------
+   Trade Profile Helper
+------------------------------ */
+async function getUserState(user) {
+    const { data: profile } = await supabase
+        .from("trade_profiles")
+        .select("verified")
+        .eq("user_id", user.id)
+        .maybeSingle();
 
     return {
-      hasProfile,
-      isVerified,
-      isNewUser: !hasProfile
+        isNewUser: !profile,
+        isVerified: profile?.verified || false
     };
-  }
+}
 
-        function switchTab(tab) {
-            currentTab = tab;
-
-            // Update tab buttons
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            event.target.classList.add('active');
-
-            // Show/hide forms
-            const signinForm = document.getElementById('signin-form');
-            const signupForm = document.getElementById('signup-form');
-
-            if (tab === 'signin') {
-                signinForm.classList.remove('hidden');
-                signupForm.classList.add('hidden');
-            } else {
-                signinForm.classList.add('hidden');
-                signupForm.classList.remove('hidden');
-            }
-
-            clearMessage();
-        }
-  // ✅ Handle email/password sign-in
-  document.getElementById('signin-form').addEventListener('submit', async (e) => {
-    e.preventDefault();
-
-    const email = document.getElementById('signin-email').value;
-    const password = document.getElementById('signin-password').value;
-    const submitBtn = e.target.querySelector('.btn');
-
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Signing in...';
-
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw error;
-
-      const session = data.session;
-      const user = data.user;
-      currentUser = user;
-
-      if (!session || !session.access_token) {
-        showMessage('No session returned from sign-in', 'error');
-        return;
-      }
-
-      const token = session.access_token;
-
-      // If this is part of an OAuth2 auth-server flow
-      if (oauthParams) {
-        await authorizeApplication(session);
-        return;
-      }
-
-      // Normal app flow: check trade profile
-      const state = await getUserState(user);
-      redirectToBravo(token, {
+/* -----------------------------
+   Redirect to Bravo
+------------------------------ */
+function redirectToBravo(token, state) {
+    const params = new URLSearchParams({
+        access_token: token,
         isNewUser: state.isNewUser,
         isVerified: state.isVerified
-      });
-    } catch (err) {
-      showMessage(err.message, 'error');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Sign In';
-    }
-  });
+    });
 
-  // ✅ Handle email/password sign-up
-  document.getElementById('signup-form').addEventListener('submit', async (e) => {
+    window.location.href = `https://bravostudio.dynalinks.app/?link=${encodeURIComponent(
+        "https://clairecampy.github.io/trade-auth/?" + params.toString()
+    )}`;
+}
+
+/* -----------------------------
+   Sign In
+------------------------------ */
+document.getElementById("signin-form").addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const email = document.getElementById('signup-email').value;
-    const password = document.getElementById('signup-password').value;
-    const submitBtn = e.target.querySelector('.btn');
+    const email = document.getElementById("signin-email").value;
+    const password = document.getElementById("signin-password").value;
 
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Creating account...';
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
 
-    try {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          redirectTo:
-            'https://bravostudio.dynalinks.app/?link=https%3A%2F%2Fclairecampy.github.io%2Ftrade-auth%2F' +
-            '&ibi=com.codelesslabs.app&apn=com.appfoundry.previewer' +
-            '&internal=https%3A%2F%2Fapps-service.bravostudio.app%2Fdevices%2Fapps%2F01K7RVR48MJ4NV7A06MZ1XFTZC%2Fnode%2F01K7RVR49DR1ANAY3KA8QANCZ3'
-        }
-      });
+    if (error) return showMessage(error.message, "error");
 
-      if (error) throw error;
+    const session = data.session;
+    const user = data.user;
 
-      const user = data.user;
-      const session = data.session;
-      currentUser = user;
+    const state = await getUserState(user);
+    redirectToBravo(session.access_token, state);
+});
 
-      if (user && !session) {
-        // Email confirmation flow
-        showMessage('Please check your email to confirm your account!', 'success');
-        return;
-      }
+/* -----------------------------
+   Sign Up
+------------------------------ */
+document.getElementById("signup-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      if (!session || !session.access_token) {
-        showMessage('No session returned from sign-up', 'error');
-        return;
-      }
+    const email = document.getElementById("signup-email").value;
+    const password = document.getElementById("signup-password").value;
 
-      const token = session.access_token;
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
-      // Ensure a trade profile row exists (unverified by default)
-      await supabase.from('trade_profiles').upsert(
-        {
-          user_id: user.id,
-          verified: false
-        },
-        { onConflict: 'user_id' }
-      );
+    if (error) return showMessage(error.message, "error");
 
-      if (oauthParams) {
-        await authorizeApplication(session);
-        return;
-      }
+    const user = data.user;
 
-      // New user → always onboarding
-      redirectToBravo(token, {
-        isNewUser: true,
-        isVerified: false
-      });
-    } catch (err) {
-      showMessage(err.message, 'error');
-    } finally {
-      submitBtn.disabled = false;
-      submitBtn.textContent = 'Sign Up';
-    }
-  });
-      
-  // ✅ Minimal UI helpers (reuse your existing ones)
-  function showAuthSection() {
-    document.getElementById('auth-section').style.display = 'block';
-    document.getElementById('user-section').style.display = 'none';
-    document.getElementById('authorization-section').style.display = 'none';
-  }
+    await supabase.from("trade_profiles").upsert({
+        user_id: user.id,
+        verified: false
+    });
 
-  function showUserSection(user) {
-    document.getElementById('auth-section').style.display = 'none';
-    document.getElementById('authorization-section').style.display = 'none';
-    document.getElementById('user-section').style.display = 'block';
-    document.getElementById('user-email').textContent = user.email;
-  }
-
-  function showMessage(text, type) {
-    const container = document.getElementById('message-container');
-    container.innerHTML = `<div class="message ${type}">${text}</div>`;
-    if (type === 'success') {
-      setTimeout(clearMessage, 5000);
-    }
-  }
-
-  function clearMessage() {
-    document.getElementById('message-container').innerHTML = '';
-  }
-
-  // ✅ OAuth2 auth-server helper (kept from your original)
-  async function authorizeApplication(session) {
-    if (!currentUser || !oauthParams) {
-      showMessage('Invalid authorization request', 'error');
-      return;
-    }
-
-    try {
-      const code = session.access_token;
-      const redirectUrl = new URL(oauthParams.redirect_uri);
-      redirectUrl.searchParams.set('code', code);
-      if (oauthParams.state) {
-        redirectUrl.searchParams.set('state', oauthParams.state);
-      }
-      window.location.href = redirectUrl.toString();
-    } catch (error) {
-      showMessage('Authorization failed: ' + error.message, 'error');
-    }
-  }
-
-  // ✅ Initial UI state
-  showAuthSection();
+    showMessage("Please check your email to confirm your account.", "success");
+});
 </script>
 
 </body>
-
 </html>
